@@ -63,12 +63,10 @@ def adjust_hue(image, hue_shift):
     return cv2.cvtColor(hsv_adjusted, cv2.COLOR_HSV2BGR)
 
 def map_value(contrast):
-    if -10 <= contrast <= 0:
-        # 映射 -10-0 到 0-1
-        return (contrast + 10) / 10
-    elif 0 < contrast <= 10:
-        # 映射 0-10 到 1-10
-        return contrast + 1
+    if -100 <= contrast <= 0:
+        return (contrast + 100) / 100
+    elif 0 < contrast <= 100:
+        return contrast / 10 + 1
     else:
         raise ValueError("输入值超出预期范围")
     
@@ -135,4 +133,4 @@ def adjust_image():
     return jsonify({'image': encoded_image})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)

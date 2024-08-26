@@ -1,11 +1,18 @@
 <template>
   <div class="right-sidebar">
+    <h3 class="image-title">直方图</h3>
     <div class="histogram-section">
-    <div class="image-container">
-      <h3 class="image-title">直方图</h3>
-      <img src="@/assets/input_image.jpg" alt="直方图" class="histogram-img"/>
+      <div class="image-container">
+        <img src="@/assets/input_image.jpg" alt="直方图" class="histogram-img"/>
+      </div>
     </div>
-  </div>
+    <!-- Add a row of connected buttons here -->
+    <div class="button-row">
+      <button @click="resetSettings" class="connected-button">1</button>
+      <button @click="applySettings" class="connected-button">2</button>
+      <button @click="saveSettings" class="connected-button">3</button>
+      <button @click="saveSettings" class="connected-button">4</button>
+    </div>
     <div>
       <label>色温</label>
       <input type="range" min="-100" max="100" v-model="temprature" @input="emitChanges" />
@@ -18,12 +25,12 @@
     </div>
     <div>
       <label>曝光</label>
-      <input type="range" min="-10" max="10" v-model="exposure" @input="emitChanges" />
+      <input type="range" min="-100" max="100" v-model="exposure" @input="emitChanges" />
       <span>{{ exposure }}</span>
     </div>
     <div>
       <label>对比</label>
-      <input type="range" min="-10" max="10" v-model="contrast" @input="emitChanges" />
+      <input type="range" min="-100" max="100" v-model="contrast" @input="emitChanges" />
       <span>{{ contrast }}</span>
     </div>
   </div>
@@ -48,6 +55,22 @@ export default {
         exposure: this.exposure,
         contrast: this.contrast
       })
+    },
+    resetSettings () {
+      // Reset all settings to their initial values
+      this.temprature = 0
+      this.hue = 0
+      this.exposure = 0
+      this.contrast = 0
+      this.emitChanges()
+    },
+    applySettings  () {
+      // Apply the current settings
+      this.emitChanges()
+    },
+    saveSettings () {
+      // Save the current settings (implement according to your needs)
+      console.log('Settings saved!')
     }
   }
 }
@@ -59,6 +82,49 @@ export default {
   padding: 10px;
   background-color: #2c2c2c;
   color: #ffffff;
+  position: relative; /* 使内部绝对定位的元素相对于此元素定位 */
+}
+
+.image-title {
+  margin: 0;
+  margin-bottom: 10px; /* 添加与下方图片的间距 */
+  text-align: right; /* 将标题右对齐 */
+}
+
+.histogram-section {
+  margin-bottom: 20px;
+}
+
+.histogram-img {
+  width: 100%;
+  height: auto;
+  max-width: 300px;
+  max-height: 200px;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.connected-button {
+  flex: 1;
+  padding: 10px 0;
+  background-color: #3a3a3a;
+  border: 1px solid #2c2c2c;
+  color: #ffffff;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.connected-button:not(:last-child) {
+  border-right: none; /* Remove border between buttons */
+}
+
+.connected-button:hover {
+  background-color: #4a4a4a;
 }
 
 .right-sidebar div {
@@ -79,34 +145,5 @@ export default {
 .right-sidebar span {
   width: 40px;
   text-align: right;
-}
-
-.histogram-section {
-  margin-bottom: 20px;
-  position: relative; /* Ensure relative positioning for child elements */
-}
-
-.image-container {
-  position: relative;
-}
-
-.histogram-img {
-  width: 100%;
-  height: auto; /* Maintain aspect ratio */
-  max-width: 300px;
-  max-height: 200px; /* Limit the maximum height */
-}
-
-.image-title {
-  position: absolute;
-  top: 0;
-  right: 0; /* Position the title in the top-right corner */
-  background-color: rgba(0, 0, 0, 0.5);
-  color: #ffffff;
-  text-align: center;
-  padding: 5px;
-  max-height: 30px; /* Optional: Set a maximum height for the title */
-  line-height: 30px; /* Optional: Center the text vertically */
-  overflow: hidden; /* Optional: Hide text that overflows */
 }
 </style>

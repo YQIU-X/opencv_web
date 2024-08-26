@@ -25,7 +25,7 @@
     </div>
 
     <!-- 隐藏的文件输入框 -->
-    <input type="file" ref="fileInput" @change="handleFileUpload" style="display: none;" />
+    <input type="file" ref="fileInput" @change="handleFileUpload" multiple style="display: none;" />
   </div>
 </template>
 
@@ -47,33 +47,43 @@ export default {
       this.$refs.fileInput.click()
     },
     handleFileUpload (event) {
-      const file = event.target.files[0]
-      if (file) {
+      const files = event.target.files
+      const newPhotos = []
+
+      Array.from(files).forEach(file => {
         const reader = new FileReader()
         reader.onload = (e) => {
           const newPhoto = {
             id: this.nextPhotoId,
             src: e.target.result
           }
-          this.photos.push(newPhoto)
+          newPhotos.push(newPhoto)
           this.nextPhotoId++
-          // 触发事件，将图片路径传递给父组件
-          this.$emit('update-image', newPhoto.src)
+
+          if (newPhotos.length === files.length) {
+            // 将新照片添加到现有的照片列表中
+            this.photos = [...this.photos, ...newPhotos]
+            // 触发事件，将更新后的照片数组传递给父组件
+            this.$emit('update-images', this.photos)
+          }
         }
         reader.readAsDataURL(file)
-      }
+      })
     },
     removePhoto (id) {
       this.photos = this.photos.filter(photo => photo.id !== id)
+      // 触发事件，将更新后的照片数组传递给父组件
+      this.$emit('update-images', this.photos)
     },
     addPhoto () {
-      // 添加照片的逻辑
       const examplePhotoSrc = 'https://via.placeholder.com/50'
       this.photos.push({
         id: this.nextPhotoId,
         src: examplePhotoSrc
       })
       this.nextPhotoId++
+      // 触发事件，将更新后的照片数组传递给父组件
+      this.$emit('update-images', this.photos)
     },
     setCurrentImage (src) {
       this.$emit('update-image', src)

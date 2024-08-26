@@ -1,19 +1,21 @@
 <template>
   <div class="bottom-gallery">
-    <img v-for="image in images" :src="image.src" :key="image.id" class="thumbnail" />
+    <img v-for="image in images" :src="image.src" :key="image.id" class="thumbnail" @click="selectImage(image.src)" />
   </div>
 </template>
 
 <script>
 export default {
   name: 'BottomGallery',
-  data () {
-    return {
-      images: [
-        { id: 1, src: 'image1.jpg' },
-        { id: 2, src: 'image2.jpg' }
-        // 其他图片数据
-      ]
+  props: {
+    images: {
+      type: Array,
+      default: () => []
+    }
+  },
+  methods: {
+    selectImage (src) {
+      this.$emit('select-image', src)
     }
   }
 }

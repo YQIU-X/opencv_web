@@ -76,24 +76,22 @@ def adjust_exposure(image, alpha):
 
     
 def adjust_contrast(img, contrast):
-    # 将图像数据归一化到 [0, 1] 范围
     fI = img / 255.0
-    
-    # 计算原始图像的最大值
+
     max_val_org = np.max(fI)
-    
-    # 使用伽马变换调整对比度
+    min_val_org = np.min(fI)
     gamma = map_value(contrast)
     O = np.power(fI, gamma)
     
-    # 计算伽马变换后的最大值
     max_val = np.max(O)
-    
-    # 归一化图像数据以保持原始的最大值
-    O *= (max_val_org / max_val)
-    
+    min_val = np.min(O)
+
+    O = (max_val_org - min_val_org) / (max_val - min_val) * (O - min_val) + min_val_org
+
+    print("O_min", np.min(O))
+    print("O_max", np.max(O))
     # 将图像数据恢复到 [0, 255] 范围并转换为 uint8 类型
-    return (O * 255).astype(np.uint8)
+    return np.clip((O * 255), 0, 255).astype(np.uint8)
 
 
 @app.route('/adjust_image', methods=['POST'])

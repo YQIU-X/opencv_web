@@ -30,7 +30,7 @@
     </div>
     <div>
       <label>对比</label>
-      <input type="range" min="-100" max="100" v-model="contrast" @input="emitChanges" />
+      <input type="range" min="-50" max="50" v-model="contrast" @input="emitChanges" />
       <span>{{ contrast }}</span>
     </div>
   </div>

@@ -1,9 +1,9 @@
 <template>
   <div class="main-layout">
-    <LeftSidebar @update-image="updateOriginalImage" />
+    <LeftSidebar @update-images="updateImages" />
     <div class="content">
       <Workspace :currentImage="currentImage" />
-      <BottomGallery />
+      <BottomGallery :images="allImages" @select-image="updateCurrentImage" />
     </div>
     <RightSidebar @update-settings="updateSettings" />
   </div>
@@ -25,17 +25,23 @@ export default {
   },
   data () {
     return {
-      originalImage: '', // 原始图片路径
-      currentImage: '' // 当前显示的图片路径
+      originalImages: [], // 所有选择的图片
+      currentImage: '', // 当前显示的图片路径
+      allImages: [] // 用于 BottomGallery 显示的图片
     }
   },
   methods: {
-    updateOriginalImage (imageSrc) {
-      this.originalImage = imageSrc
-      this.currentImage = imageSrc // 显示原图
+    updateImages (images) {
+      this.allImages = images // 更新所有图片列表
+      if (images.length > 0) {
+        this.currentImage = images[0].src // 将第一个图片显示在 Workspace 中
+      }
+    },
+    updateCurrentImage (imageSrc) {
+      this.currentImage = imageSrc // 更新 Workspace 中显示的图片
     },
     updateSettings (settings) {
-      if (!this.originalImage) return // 确保原图已经设置
+      if (!this.allImages.length) return // 确保至少有一张图片
 
       fetch('http://localhost:5000/adjust_image', {
         method: 'POST',
@@ -44,7 +50,7 @@ export default {
         },
         body: JSON.stringify({
           ...settings,
-          image: this.originalImage
+          image: this.allImages[0].src // 使用第一个图片进行调整
         })
       })
         .then(response => {

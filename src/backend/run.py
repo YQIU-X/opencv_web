@@ -3,21 +3,28 @@ import os
 
 root = "./src/backend/"
 def run_scripts():
+    process = []
     point_process = subprocess.Popen(["python", os.path.join(root, "PointCallBack.py")])
 
     right_touch_bar_process = subprocess.Popen(["python", os.path.join(root, "RightTouchBar.py")])
 
+    file_floder_process = subprocess.Popen(["python", os.path.join(root, "OpenFloder.py")])
+
+    process.append(point_process)
+    process.append(right_touch_bar_process)
+    process.append(file_floder_process)
+
+    print("Starting scripts...")
     try:
-        point_process.wait()
-        right_touch_bar_process.wait()
+        for p in process:
+            p.wait()
     except KeyboardInterrupt:
         print("Stopping scripts...")
+        for p in process:
+            p.terminate()
 
-        point_process.terminate()
-        right_touch_bar_process.terminate()
-
-        point_process.wait()
-        right_touch_bar_process.wait()
+        for p in process:
+            p.wait()
 
     print("Both scripts have finished.")
 

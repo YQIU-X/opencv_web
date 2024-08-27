@@ -5,27 +5,16 @@
       <transition name="slide-fade">
         <ul v-if="expandedSection === 'files'">
           <li @click.stop="triggerFileInput">打开照片</li>
-          <li>打开文件夹</li>
+          <li @click.stop="triggerFolderInput">打开文件夹</li>
           <li>覆盖原图</li>
           <li>另存为</li>
         </ul>
       </transition>
     </div>
-    <div @click="toggleSection('favorites')" class="sidebar-section">
-      <h2>收藏夹</h2>
-      <transition name="slide-fade">
-        <div v-if="expandedSection === 'favorites'" class="photo-container">
-          <div v-for="photo in photos" :key="photo.id" class="photo-item">
-            <img :src="photo.src" @click.stop="setCurrentImage(photo.src)" />
-            <button @click.stop="removePhoto(photo.id)">删除</button>
-          </div>
-          <button @click.stop="addPhoto">添加照片</button>
-        </div>
-      </transition>
-    </div>
-
     <!-- 隐藏的文件输入框 -->
     <input type="file" ref="fileInput" @change="handleFileUpload" multiple style="display: none;" />
+    <!-- 用于选择文件夹的文件输入框 -->
+    <input type="file" ref="folderInput" @change="handleFolderUpload" webkitdirectory style="display: none;" />
   </div>
 </template>
 
@@ -46,59 +35,60 @@ export default {
     triggerFileInput () {
       this.$refs.fileInput.click()
     },
+    triggerFolderInput () {
+      this.$refs.folderInput.click()
+    },
     handleFileUpload (event) {
-      const files = event.target.files
-      const newPhotos = []
+      this.processFiles(event.target.files)
+    },
+    handleFolderUpload (event) {
+      this.processFiles(event.target.files)
+    },
+    processFiles (files) {
+      const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'JPG'] // 可根据需要修改
 
-      Array.from(files).forEach(file => {
+      const newPhotos = []
+      const filteredFiles = Array.from(files).filter(file => {
+        // 获取文件扩展名并转为小写
+        const fileExtension = file.name.split('.').pop().toLowerCase()
+        // 只处理有效扩展名的文件
+        return validExtensions.includes(fileExtension)
+      })
+
+      // 如果没有有效的文件，则直接返回
+      if (filteredFiles.length === 0) {
+        console.warn('No valid image files found.')
+        return
+      }
+
+      // 使用 filteredFiles 处理文件
+      filteredFiles.forEach(file => {
+        console.log(`Processing file: ${file.name}`) // 输出文件名到控制台
+
         const reader = new FileReader()
         reader.onload = (e) => {
-          const newPhoto = {
-            id: this.nextPhotoId,
-            src: e.target.result
-          }
-          newPhotos.push(newPhoto)
-          this.nextPhotoId++
+          const newPhotoSrc = e.target.result
+          console.log(`File loaded: ${file.name}`) // 文件加载成功后输出文件名
 
-          if (newPhotos.length === files.length) {
-            // 将新照片添加到现有的照片列表中
+          const photoExists = this.photos.some(photo => photo.src === newPhotoSrc)
+          if (!photoExists) {
+            const newPhoto = {
+              id: this.nextPhotoId,
+              src: newPhotoSrc
+            }
+            newPhotos.push(newPhoto)
+            this.nextPhotoId++
+          }
+
+          // 检查是否所有筛选后的文件都已处理
+          if (newPhotos.length === filteredFiles.length) {
             this.photos = [...this.photos, ...newPhotos]
-            // 触发事件，将更新后的照片数组传递给父组件
             this.$emit('update-images', this.photos)
           }
         }
         reader.readAsDataURL(file)
       })
-    },
-    removePhoto (id) {
-      this.photos = this.photos.filter(photo => photo.id !== id)
-      // 触发事件，将更新后的照片数组传递给父组件
-      this.$emit('update-images', this.photos)
-    },
-    addPhoto () {
-      const examplePhotoSrc = 'https://via.placeholder.com/50'
-      this.photos.push({
-        id: this.nextPhotoId,
-        src: examplePhotoSrc
-      })
-      this.nextPhotoId++
-      // 触发事件，将更新后的照片数组传递给父组件
-      this.$emit('update-images', this.photos)
-    },
-    setCurrentImage (src) {
-      this.$emit('update-image', src)
-    },
-    handleClickOutside (event) {
-      if (!this.$el.contains(event.target)) {
-        this.expandedSection = null
-      }
     }
-  },
-  mounted () {
-    document.addEventListener('click', this.handleClickOutside)
-  },
-  beforeDestroy () {
-    document.removeEventListener('click', this.handleClickOutside)
   }
 }
 </script>
@@ -127,40 +117,39 @@ li {
   padding-left: 10px;
 }
 
-.photo-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-enter, .slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+</style>
+
+<style scoped>
+.left-sidebar {
+  width: 200px;
   padding: 10px;
+  background-color: #2c2c2c;
+  color: #ffffff;
 }
 
-.photo-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 50px;
-  height: 100px;
-}
-
-img {
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
-  border: 1px solid #fff;
-  margin-bottom: 5px;
-}
-
-button {
-  background-color: #444;
-  color: #fff;
-  border: none;
-  padding: 5px;
+.sidebar-section {
   cursor: pointer;
-  font-size: 12px;
+  margin-bottom: 10px;
 }
 
-button:hover {
-  background-color: #666;
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  padding: 5px 0;
+  padding-left: 10px;
 }
 
 .slide-fade-enter-active,

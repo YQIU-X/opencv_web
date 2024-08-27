@@ -6,7 +6,7 @@
         <img src="@/assets/input_image.jpg" alt="直方图" class="histogram-img"/>
       </div>
     </div>
-    <!-- Add a row of connected buttons here -->
+  <!-- Add a row of connected buttons here -->
     <div class="button-row">
       <button @click="resetSettings" class="connected-button">1</button>
       <button @click="applySettings" class="connected-button">2</button>
@@ -39,6 +39,12 @@
 <script>
 export default {
   name: 'RightSidebar',
+  props: {
+    selectedImage: {
+      type: String,
+      default: ''
+    }
+  },
   data () {
     return {
       temprature: 0,

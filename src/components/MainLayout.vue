@@ -2,8 +2,13 @@
   <div class="main-layout">
     <LeftSidebar @update-images="updateImages" />
     <div class="content">
-      <Workspace :currentImage="currentImage" />
-      <BottomGallery :images="allImages" @select-image="updateCurrentImage" />
+      <Workspace :currentImage="backendImage" />
+      <BottomGallery
+        :images="allImages"
+        :selectedImage="backendImage"
+        @select-image="updateCurrentImage"
+        @remove-image="removeImage"
+      />
     </div>
     <RightSidebar @update-settings="updateSettings" />
   </div>
@@ -25,23 +30,25 @@ export default {
   },
   data () {
     return {
-      originalImages: [], // 所有选择的图片
-      currentImage: '', // 当前显示的图片路径
-      allImages: [] // 用于 BottomGallery 显示的图片
+      originalImage: '', // Store the original image path
+      backendImage: '', // Store the image path returned by the backend
+      allImages: [] // Images for displaying in BottomGallery
     }
   },
   methods: {
     updateImages (images) {
-      this.allImages = images // 更新所有图片列表
+      this.allImages = images // Update the list of all images
       if (images.length > 0) {
-        this.currentImage = images[0].src // 将第一个图片显示在 Workspace 中
+        this.originalImage = images[0].src // Save the first image as the original image
+        this.backendImage = images[0].src // Initialize backendImage
       }
     },
     updateCurrentImage (imageSrc) {
-      this.currentImage = imageSrc // 更新 Workspace 中显示的图片
+      this.originalImage = imageSrc // Update the original image path
+      this.backendImage = imageSrc // Update the displayed image path
     },
     updateSettings (settings) {
-      if (!this.allImages.length) return // 确保至少有一张图片
+      if (!this.originalImage) return // Ensure there is an original image
 
       fetch('http://localhost:5000/adjust_image', {
         method: 'POST',
@@ -50,7 +57,7 @@ export default {
         },
         body: JSON.stringify({
           ...settings,
-          image: this.allImages[0].src // 使用第一个图片进行调整
+          image: this.originalImage // Adjust using the original image path
         })
       })
         .then(response => {
@@ -60,11 +67,17 @@ export default {
           return response.json()
         })
         .then(data => {
-          this.currentImage = `data:image/jpeg;base64,${data.image}`
+          this.backendImage = `data:image/jpeg;base64,${data.image}` // Update backendImage
         })
         .catch(error => {
           console.error('Error updating image:', error)
         })
+    },
+    removeImage (imageSrc) {
+      this.allImages = this.allImages.filter(image => image.src !== imageSrc)
+      if (this.backendImage === imageSrc) {
+        this.backendImage = this.allImages.length > 0 ? this.allImages[0].src : ''
+      }
     }
   }
 }
@@ -77,31 +90,31 @@ export default {
 }
 
 .left-sidebar {
-  flex: 0 0 200px; /* 固定宽度 */
+  flex: 0 0 200px; /* Fixed width */
 }
 
 .right-sidebar {
-  flex: 0 0 300px; /* 固定宽度 */
+  flex: 0 0 300px; /* Fixed width */
 }
 
 .content {
-  flex: 1; /* 让内容区占据剩余空间 */
+  flex: 1; /* Make content take up the remaining space */
   display: flex;
   flex-direction: column;
 }
 
 .workspace {
-  flex: 1; /* 让工作区占据可用空间 */
+  flex: 1; /* Make workspace take up available space */
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: #000;
-  min-height: 200px; /* 设置最小高度 */
-  max-height: calc(100vh - 100px); /* 设置最大高度，减去底部栏高度 */
+  min-height: 200px; /* Set minimum height */
+  max-height: calc(100vh - 100px); /* Set maximum height, subtracting bottom bar height */
 }
 
 .bottom-gallery {
-  height: 120px; /* 固定高度 */
+  height: 120px; /* Fixed height */
   background-color: #1c1c1c;
   overflow-x: auto;
 }

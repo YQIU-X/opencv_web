@@ -8,8 +8,8 @@
     </div>
     <!-- Add a row of connected buttons here -->
     <div class="button-row">
-      <button @click="resetSettings" class="connected-button">1</button>
-      <button @click="applySettings" class="connected-button">2</button>
+      <button @click="saveSettings" class="connected-button">1</button>
+      <button @click="saveSettings" class="connected-button">2</button>
       <button @click="saveSettings" class="connected-button">3</button>
       <button @click="saveSettings" class="connected-button">4</button>
     </div>

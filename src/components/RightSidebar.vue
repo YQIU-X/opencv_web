@@ -58,7 +58,7 @@
     <div v-if="currentPage === 4">
       <!-- 添加十个按钮 -->
       <div class="button-container">
-        <button v-for="n in 10" :key="n" class="extra-button">按钮 {{ n }}</button>
+        <button v-for="n in 10" :key="n" class="extra-button" @click="n === 10 ? processImage() : null">按钮 {{ n }}</button>
       </div>
     </div>
   </div>

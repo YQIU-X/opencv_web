@@ -1,6 +1,6 @@
 <template>
   <div class="main-layout">
-    <LeftSidebar @update-images="updateImages" />
+    <LeftSidebar :backendImage="backendImage" @update-images="updateImages" @overwrite-image="overwriteImage" />
     <div class="content">
       <Workspace :currentImage="backendImage" />
       <BottomGallery
@@ -37,18 +37,18 @@ export default {
   },
   methods: {
     updateImages (images) {
-      this.allImages = images // Update the list of all images
+      this.allImages = images
       if (images.length > 0) {
-        this.originalImage = images[0].src // Save the first image as the original image
-        this.backendImage = images[0].src // Initialize backendImage
+        this.originalImage = images[0].src
+        this.backendImage = images[0].src
       }
     },
     updateCurrentImage (imageSrc) {
-      this.originalImage = imageSrc // Update the original image path
-      this.backendImage = imageSrc // Update the displayed image path
+      this.originalImage = imageSrc
+      this.backendImage = imageSrc
     },
     updateSettings (settings) {
-      if (!this.originalImage) return // Ensure there is an original image
+      if (!this.originalImage) return
 
       fetch('http://localhost:5000/adjust_image', {
         method: 'POST',
@@ -57,7 +57,7 @@ export default {
         },
         body: JSON.stringify({
           ...settings,
-          image: this.originalImage // Adjust using the original image path
+          image: this.originalImage
         })
       })
         .then(response => {
@@ -67,7 +67,7 @@ export default {
           return response.json()
         })
         .then(data => {
-          this.backendImage = `data:image/jpeg;base64,${data.image}` // Update backendImage
+          this.backendImage = `data:image/jpeg;base64,${data.image}`
         })
         .catch(error => {
           console.error('Error updating image:', error)
@@ -78,6 +78,21 @@ export default {
       if (this.backendImage === imageSrc) {
         this.backendImage = this.allImages.length > 0 ? this.allImages[0].src : ''
       }
+    },
+    overwriteImage (newImageSrc) {
+      const updatedImages = this.allImages.map(image => {
+        if (image.src === this.originalImage) {
+          return {
+            ...image,
+            src: newImageSrc
+          }
+        }
+        return image
+      })
+
+      this.allImages = updatedImages
+      this.originalImage = newImageSrc
+      this.backendImage = newImageSrc
     }
   }
 }

@@ -8,11 +8,11 @@ def run_scripts():
 
     right_touch_bar_process = subprocess.Popen(["python", os.path.join(root, "RightTouchBar.py")])
 
-    file_floder_process = subprocess.Popen(["python", os.path.join(root, "OpenFloder.py")])
+    draw_hist = subprocess.Popen(["python", os.path.join(root,"DrawHist.py")])
 
     process.append(point_process)
     process.append(right_touch_bar_process)
-    process.append(file_floder_process)
+    process.append(draw_hist)
 
     print("Starting scripts...")
     try:

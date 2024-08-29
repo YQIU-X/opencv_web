@@ -6,8 +6,8 @@
         <ul v-if="expandedSection === 'files'">
           <li @click.stop="triggerFileInput">打开照片</li>
           <li @click.stop="triggerFolderInput">打开文件夹</li>
-          <li>覆盖原图</li>
-          <li>另存为</li>
+          <li @click.stop="overwriteOriginal">覆盖原图</li>
+          <li @click.stop="saveAs">另存为</li>
         </ul>
       </transition>
     </div>
@@ -21,6 +21,7 @@
 <script>
 export default {
   name: 'LeftSidebar',
+  props: ['backendImage'], // 接收从MainLayout传来的backendImage
   data () {
     return {
       expandedSection: null,
@@ -44,31 +45,31 @@ export default {
     handleFolderUpload (event) {
       this.processFiles(event.target.files)
     },
+    overwriteOriginal () {
+      if (!this.backendImage) {
+        console.warn('No image available to overwrite.')
+        return
+      }
+      this.$emit('overwrite-image', this.backendImage)
+    },
     processFiles (files) {
-      const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'JPG'] // 可根据需要修改
+      const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'JPG']
 
       const newPhotos = []
       const filteredFiles = Array.from(files).filter(file => {
-        // 获取文件扩展名并转为小写
         const fileExtension = file.name.split('.').pop().toLowerCase()
-        // 只处理有效扩展名的文件
         return validExtensions.includes(fileExtension)
       })
 
-      // 如果没有有效的文件，则直接返回
       if (filteredFiles.length === 0) {
         console.warn('No valid image files found.')
         return
       }
 
-      // 使用 filteredFiles 处理文件
       filteredFiles.forEach(file => {
-        console.log(`Processing file: ${file.name}`) // 输出文件名到控制台
-
         const reader = new FileReader()
         reader.onload = (e) => {
           const newPhotoSrc = e.target.result
-          console.log(`File loaded: ${file.name}`) // 文件加载成功后输出文件名
 
           const photoExists = this.photos.some(photo => photo.src === newPhotoSrc)
           if (!photoExists) {
@@ -80,7 +81,6 @@ export default {
             this.nextPhotoId++
           }
 
-          // 检查是否所有筛选后的文件都已处理
           if (newPhotos.length === filteredFiles.length) {
             this.photos = [...this.photos, ...newPhotos]
             this.$emit('update-images', this.photos)
@@ -88,45 +88,45 @@ export default {
         }
         reader.readAsDataURL(file)
       })
+    },
+    async saveAs () {
+      if (!this.backendImage) {
+        console.warn('No image available to save.')
+        return
+      }
+
+      try {
+        // Generate a timestamp for the filename
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+        const suggestedName = `image-${timestamp}.jpg`
+
+        const opts = {
+          suggestedName: suggestedName, // Use the timestamp as the default filename
+          types: [{
+            description: 'Images',
+            accept: { 'image/jpeg': ['.jpg', '.jpeg'] }
+          }]
+        }
+
+        // Open the file save dialog
+        const fileHandle = await window.showSaveFilePicker(opts)
+        const writableStream = await fileHandle.createWritable()
+
+        // Convert backendImage to Blob
+        const response = await fetch(this.backendImage)
+        const blob = await response.blob()
+
+        // Write the file
+        await writableStream.write(blob)
+        await writableStream.close()
+        console.log('File saved successfully.')
+      } catch (err) {
+        console.error('Error saving file:', err)
+      }
     }
   }
 }
 </script>
-
-<style scoped>
-.left-sidebar {
-  width: 200px;
-  padding: 10px;
-  background-color: #2c2c2c;
-  color: #ffffff;
-}
-
-.sidebar-section {
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-
-ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-li {
-  padding: 5px 0;
-  padding-left: 10px;
-}
-
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-fade-enter, .slide-fade-leave-to {
-  transform: translateY(-10px);
-  opacity: 0;
-}
-</style>
 
 <style scoped>
 .left-sidebar {

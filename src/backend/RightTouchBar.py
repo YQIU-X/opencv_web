@@ -88,8 +88,6 @@ def adjust_contrast(img, contrast):
 
     O = (max_val_org - min_val_org) / (max_val - min_val) * (O - min_val) + min_val_org
 
-    print("O_min", np.min(O))
-    print("O_max", np.max(O))
     # 将图像数据恢复到 [0, 255] 范围并转换为 uint8 类型
     return np.clip((O * 255), 0, 255).astype(np.uint8)
 

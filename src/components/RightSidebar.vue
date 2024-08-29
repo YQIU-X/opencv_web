@@ -3,10 +3,10 @@
     <h3 class="image-title">直方图</h3>
     <div class="histogram-section">
       <div class="image-container">
-        <img src="@/assets/input_image.jpg" alt="直方图" class="histogram-img"/>
+        <img :src="require('@/assets/input_image.jpg')" alt="直方图" class="histogram-img" />
       </div>
     </div>
-  <!-- Add a row of connected buttons here -->
+    <!-- Add a row of connected buttons here -->
     <div class="button-row">
       <button @click="resetSettings" class="connected-button">1</button>
       <button @click="applySettings" class="connected-button">2</button>
@@ -55,6 +55,7 @@ export default {
   },
   methods: {
     emitChanges () {
+      // 发送更新设置的请求
       this.$emit('update-settings', {
         temprature: this.temprature,
         hue: this.hue,
@@ -63,19 +64,19 @@ export default {
       })
     },
     resetSettings () {
-      // Reset all settings to their initial values
+      // 重置所有设置为初始值
       this.temprature = 0
       this.hue = 0
       this.exposure = 0
       this.contrast = 0
       this.emitChanges()
     },
-    applySettings  () {
-      // Apply the current settings
+    applySettings () {
+      // 应用当前设置
       this.emitChanges()
     },
     saveSettings () {
-      // Save the current settings (implement according to your needs)
+      // 保存当前设置
       console.log('Settings saved!')
     }
   }

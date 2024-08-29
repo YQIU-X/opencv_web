@@ -1,6 +1,5 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 import cv2
-
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib
@@ -12,7 +11,6 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # 启用 CORS，允许来自所有来源的请求
-
 
 def drawHist(image):
     colors = ('b', 'g', 'r')
@@ -36,7 +34,11 @@ def drawHist(image):
     buf.seek(0)
     plt.close()
 
-    return buf
+    # 从 BytesIO 读取图像并将其转换为 NumPy 数组
+    img_array = np.frombuffer(buf.getvalue(), dtype=np.uint8)
+    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+
+    return img
 
 def base64_to_image(base64_string):
     if ',' in base64_string:
@@ -75,10 +77,10 @@ def upload_image():
         return jsonify({'error': 'Failed to decode image'}), 400
 
     # 绘制直方图
-    hist_buf = drawHist(image)
+    hist_img = drawHist(image)
 
     # 将图像编码为 JPEG 格式
-    _, buffer = cv2.imencode('.jpg', hist_buf)
+    _, buffer = cv2.imencode('.jpg', hist_img)
     if not _:
         return jsonify({'error': 'Failed to encode image'}), 500
 

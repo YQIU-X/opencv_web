@@ -3,7 +3,7 @@
     <h3 class="image-title">直方图</h3>
     <div class="histogram-section">
       <div class="image-container">
-        <img :src="require('@/assets/input_image.jpg')" alt="直方图" class="histogram-img" />
+        <img :src="histogramImage" alt="直方图" class="histogram-img" />
       </div>
     </div>
     <!-- Add a row of connected buttons here -->
@@ -43,17 +43,46 @@ export default {
     selectedImage: {
       type: String,
       default: ''
+    },
+    backendImage: {
+      type: String,
+      required: true
     }
   },
   data () {
     return {
+      histogramImage: '',
       temprature: 0,
       hue: 0,
       exposure: 0,
       contrast: 0
     }
   },
+  watch: {
+    backendImage: {
+      immediate: true,
+      handler (newImage) {
+        this.fetchHistogram(newImage)
+      }
+    }
+  },
   methods: {
+    fetchHistogram (imageData) {
+      fetch('http://localhost:5003/upload_image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: imageData })
+      })
+        .then(response => response.json())
+        .then(data => {
+          this.histogramImage = `data:image/jpeg;base64,${data.image}`
+        })
+        .catch(error => {
+          console.error('Error fetching histogram:', error)
+        })
+    },
     emitChanges () {
       // 发送更新设置的请求
       this.$emit('update-settings', {

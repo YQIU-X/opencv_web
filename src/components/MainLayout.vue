@@ -10,7 +10,7 @@
         @remove-image="removeImage"
       />
     </div>
-    <RightSidebar @update-settings="updateSettings" />
+    <RightSidebar :backendImage="backendImage" @update-settings="updateSettings" />
   </div>
 </template>
 

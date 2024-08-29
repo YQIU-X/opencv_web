@@ -21,10 +21,6 @@
 export default {
   name: 'BottomGallery',
   props: {
-    images: {
-      type: Array,
-      default: () => []
-    },
     selectedImage: {
       type: String,
       default: ''
@@ -32,6 +28,7 @@ export default {
   },
   data () {
     return {
+      images: [],
       contextMenuVisible: false,
       contextMenuX: 0,
       contextMenuY: 0,
@@ -39,6 +36,32 @@ export default {
     }
   },
   methods: {
+    updateImages () {
+      fetch('http://localhost:5006/upload_images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok')
+          }
+          return response.json()
+        })
+        .then(data => {
+          if (data && data.images) {
+            this.allImages = data.images.map(image => ({
+              id: image.id,
+              src: `data:image/jpeg;base64,${image.src}`
+            }))
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching and updating images:', error)
+        })
+    },
+
     selectImage (src) {
       this.$emit('select-image', src)
     },

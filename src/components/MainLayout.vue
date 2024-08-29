@@ -1,8 +1,8 @@
 <template>
   <div class="main-layout">
-    <LeftSidebar :backendImage="backendImage" @update-images="updateImages" @overwrite-image="overwriteImage" />
+    <LeftSidebar @upload_images="upload_images" />
     <div class="content">
-      <Workspace :currentImage="backendImage" />
+      <Workspace :currentImage="currentImg" />
       <BottomGallery
         :images="allImages"
         :selectedImage="backendImage"
@@ -30,17 +30,17 @@ export default {
   },
   data () {
     return {
-      originalImage: '', // Store the original image path
-      backendImage: '', // Store the image path returned by the backend
-      allImages: [] // Images for displaying in BottomGallery
+      storedImageIds: [],
+      currentImg: null
     }
   },
   methods: {
-    updateImages (images) {
-      this.allImages = images
-      if (images.length > 0) {
-        this.originalImage = images[0].src
-        this.backendImage = images[0].src
+    upload_images (data) {
+      this.storedImageIds = data.image_ids
+      console.log('Received image IDs:', data.image_ids)
+      console.log('Received first image base64:', data.first_image)
+      if (data.first_image !== null && data.first_image !== undefined) {
+        this.currentImg = `data:image/jpeg;base64,${data.first_image}`
       }
     },
     updateCurrentImage (imageSrc) {

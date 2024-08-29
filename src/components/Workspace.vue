@@ -11,7 +11,7 @@ export default {
   props: {
     currentImage: {
       type: String,
-      default: ''
+      default: null
     }
   },
   data () {

@@ -6,8 +6,8 @@
         <ul v-if="expandedSection === 'files'">
           <li @click.stop="triggerFileInput">打开照片</li>
           <li @click.stop="triggerFolderInput">打开文件夹</li>
-          <li @click.stop="overwriteOriginal">覆盖原图</li>
-          <li @click.stop="saveAs">另存为</li>
+          <li>覆盖原图</li>
+          <li>另存为</li>
         </ul>
       </transition>
     </div>
@@ -21,12 +21,9 @@
 <script>
 export default {
   name: 'LeftSidebar',
-  props: ['backendImage'], // 接收从MainLayout传来的backendImage
   data () {
     return {
-      expandedSection: null,
-      photos: [],
-      nextPhotoId: 1
+      expandedSection: null
     }
   },
   methods: {
@@ -45,84 +42,34 @@ export default {
     handleFolderUpload (event) {
       this.processFiles(event.target.files)
     },
-    overwriteOriginal () {
-      if (!this.backendImage) {
-        console.warn('No image available to overwrite.')
-        return
-      }
-      this.$emit('overwrite-image', this.backendImage)
-    },
     processFiles (files) {
-      const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'JPG']
+      const formData = new FormData()
 
-      const newPhotos = []
-      const filteredFiles = Array.from(files).filter(file => {
-        const fileExtension = file.name.split('.').pop().toLowerCase()
-        return validExtensions.includes(fileExtension)
+      Array.from(files).forEach(file => {
+        formData.append('images', file)
       })
 
-      if (filteredFiles.length === 0) {
-        console.warn('No valid image files found.')
-        return
-      }
-
-      filteredFiles.forEach(file => {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          const newPhotoSrc = e.target.result
-
-          const photoExists = this.photos.some(photo => photo.src === newPhotoSrc)
-          if (!photoExists) {
-            const newPhoto = {
-              id: this.nextPhotoId,
-              src: newPhotoSrc
-            }
-            newPhotos.push(newPhoto)
-            this.nextPhotoId++
-          }
-
-          if (newPhotos.length === filteredFiles.length) {
-            this.photos = [...this.photos, ...newPhotos]
-            this.$emit('update-images', this.photos)
-          }
-        }
-        reader.readAsDataURL(file)
+      fetch('http://localhost:5005/upload_images', {
+        method: 'POST',
+        body: formData
       })
-    },
-    async saveAs () {
-      if (!this.backendImage) {
-        console.warn('No image available to save.')
-        return
-      }
-
-      try {
-        // Generate a timestamp for the filename
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-        const suggestedName = `image-${timestamp}.jpg`
-
-        const opts = {
-          suggestedName: suggestedName, // Use the timestamp as the default filename
-          types: [{
-            description: 'Images',
-            accept: { 'image/jpeg': ['.jpg', '.jpeg'] }
-          }]
-        }
-
-        // Open the file save dialog
-        const fileHandle = await window.showSaveFilePicker(opts)
-        const writableStream = await fileHandle.createWritable()
-
-        // Convert backendImage to Blob
-        const response = await fetch(this.backendImage)
-        const blob = await response.blob()
-
-        // Write the file
-        await writableStream.write(blob)
-        await writableStream.close()
-        console.log('File saved successfully.')
-      } catch (err) {
-        console.error('Error saving file:', err)
-      }
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to upload images')
+          }
+          return response.json()
+        })
+        .then(data => {
+          console.log('Received IDs from backend:', data.image_ids)
+          console.log('Received img from backend:', data.first_image)
+          this.$emit('upload_images', {
+            image_ids: data.image_ids,
+            first_image: data.first_image
+          })
+        })
+        .catch(error => {
+          console.error('Error uploading images:', error)
+        })
     }
   }
 }

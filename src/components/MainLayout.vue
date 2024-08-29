@@ -79,20 +79,17 @@ export default {
         this.backendImage = this.allImages.length > 0 ? this.allImages[0].src : ''
       }
     },
-    overwriteImage (newImageSrc) {
-      const updatedImages = this.allImages.map(image => {
-        if (image.src === this.originalImage) {
-          return {
-            ...image,
-            src: newImageSrc
-          }
-        }
-        return image
-      })
+    overwriteImage ({ index, newSrc }) {
+      if (index >= 0 && index < this.allImages.length) {
+        // Overwrite the original image in the allImages array
+        this.allImages[index].src = newSrc
 
-      this.allImages = updatedImages
-      this.originalImage = newImageSrc
-      this.backendImage = newImageSrc
+        // Update the originalImage and backendImage paths
+        this.originalImage = newSrc
+        this.backendImage = newSrc
+      } else {
+        console.warn('Invalid image index.')
+      }
     }
   }
 }

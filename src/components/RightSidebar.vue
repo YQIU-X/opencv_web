@@ -141,7 +141,7 @@ export default {
 .right-sidebar {
   width: 300px;
   padding: 10px;
-  background-color: #191515;
+  background-color: #2c2c2c;
   color: #ffffff;
   position: relative;
 }

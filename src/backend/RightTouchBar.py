@@ -78,6 +78,7 @@ def adjust_exposure(image, alpha):
 def adjust_contrast(img, contrast):
     fI = img / 255.0
 
+    fI = np.where(fI - 0.01 > 0, fI - 0.01, 0)
     max_val_org = np.max(fI)
     min_val_org = np.min(fI)
     gamma = map_value(contrast)

@@ -18,8 +18,8 @@ def drawHist(image):
     
     # 创建一个带灰色背景的图形
     fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor('#191515')  # 整个图形背景设置为灰色
-    ax.set_facecolor('#191515')  # 坐标轴背景设置为灰色
+    fig.patch.set_facecolor('#2c2c2c')  # 整个图形背景设置为灰色
+    ax.set_facecolor('#2c2c2c')  # 坐标轴背景设置为灰色
 
     for i, color in enumerate(colors):
         hist = cv2.calcHist([image], [i], None, [256], [0, 256])

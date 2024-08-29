@@ -6,32 +6,60 @@
         <img :src="histogramImage" alt="直方图" class="histogram-img" />
       </div>
     </div>
-    <!-- Add a row of connected buttons here -->
+    <!-- 按钮行 -->
     <div class="button-row">
-      <button @click="resetSettings" class="connected-button">1</button>
-      <button @click="applySettings" class="connected-button">2</button>
-      <button @click="saveSettings" class="connected-button">3</button>
-      <button @click="saveSettings" class="connected-button">4</button>
+      <button @click="currentPage = 1" class="connected-button">
+        <img src="../../items/dataIcon.png" alt="按钮1" class="button-icon1" />
+      </button>
+      <button @click="currentPage = 2" class="connected-button">
+        <img src="path/to/image2.png" alt="按钮2" class="button-icon" />
+      </button>
+      <button @click="currentPage = 3" class="connected-button">
+        <img src="path/to/image2.png" alt="按钮3" class="button-icon" />
+      </button>
+      <button @click="currentPage = 4" class="connected-button">
+        <img src="../../items/bergerIcon.png" alt="按钮4" class="button-icon4" />
+      </button>
     </div>
-    <div>
-      <label>色温</label>
-      <input type="range" min="-100" max="100" v-model="temprature" @input="emitChanges" />
-      <span>{{ temprature }}</span>
+    <!-- 根据 currentPage 显示不同的内容 -->
+    <div v-if="currentPage === 1">
+      <div class="slider-container">
+        <label>色温</label>
+        <input type="range" min="-100" max="100" v-model="temprature" @input="emitChanges" />
+        <span>{{ temprature }}</span>
+      </div>
+      <div class="slider-container">
+        <label>色调</label>
+        <input type="range" min="-90" max="90" v-model="hue" @input="emitChanges" />
+        <span>{{ hue }}</span>
+      </div>
+      <div class="slider-container">
+        <label>曝光</label>
+        <input type="range" min="-100" max="100" v-model="exposure" @input="emitChanges" />
+        <span>{{ exposure }}</span>
+      </div>
+      <div class="slider-container">
+        <label>对比</label>
+        <input type="range" min="-50" max="50" v-model="contrast" @input="emitChanges" />
+        <span>{{ contrast }}</span>
+      </div>
     </div>
-    <div>
-      <label>色调</label>
-      <input type="range" min="-90" max="90" v-model="hue" @input="emitChanges" />
-      <span>{{ hue }}</span>
+    <!-- 第二个页面的内容 -->
+    <div v-if="currentPage === 2">
+      <!-- 页面 2 的内容 -->
+      <p>这是第二个页面的内容。</p>
     </div>
-    <div>
-      <label>曝光</label>
-      <input type="range" min="-100" max="100" v-model="exposure" @input="emitChanges" />
-      <span>{{ exposure }}</span>
+    <!-- 第三个页面的内容 -->
+    <div v-if="currentPage === 3">
+      <!-- 页面 3 的内容 -->
+      <p>这是第三个页面的内容。</p>
     </div>
-    <div>
-      <label>对比</label>
-      <input type="range" min="-50" max="50" v-model="contrast" @input="emitChanges" />
-      <span>{{ contrast }}</span>
+    <!-- 第四个页面的内容 -->
+    <div v-if="currentPage === 4">
+      <!-- 添加十个按钮 -->
+      <div class="button-container">
+        <button v-for="n in 10" :key="n" class="extra-button">按钮 {{ n }}</button>
+      </div>
     </div>
   </div>
 </template>
@@ -55,7 +83,8 @@ export default {
       temprature: 0,
       hue: 0,
       exposure: 0,
-      contrast: 0
+      contrast: 0,
+      currentPage: 1 // 控制当前显示的页面
     }
   },
   watch: {
@@ -84,7 +113,6 @@ export default {
         })
     },
     emitChanges () {
-      // 发送更新设置的请求
       this.$emit('update-settings', {
         temprature: this.temprature,
         hue: this.hue,
@@ -93,7 +121,6 @@ export default {
       })
     },
     resetSettings () {
-      // 重置所有设置为初始值
       this.temprature = 0
       this.hue = 0
       this.exposure = 0
@@ -101,11 +128,9 @@ export default {
       this.emitChanges()
     },
     applySettings () {
-      // 应用当前设置
       this.emitChanges()
     },
     saveSettings () {
-      // 保存当前设置
       console.log('Settings saved!')
     }
   }
@@ -118,13 +143,13 @@ export default {
   padding: 10px;
   background-color: #2c2c2c;
   color: #ffffff;
-  position: relative; /* 使内部绝对定位的元素相对于此元素定位 */
+  position: relative;
 }
 
 .image-title {
   margin: 0;
-  margin-bottom: 10px; /* 添加与下方图片的间距 */
-  text-align: right; /* 将标题右对齐 */
+  margin-bottom: 10px;
+  text-align: right;
 }
 
 .histogram-section {
@@ -156,30 +181,64 @@ export default {
 }
 
 .connected-button:not(:last-child) {
-  border-right: none; /* Remove border between buttons */
+  border-right: none;
 }
 
 .connected-button:hover {
   background-color: #4a4a4a;
 }
 
-.right-sidebar div {
+.button-icon1 {
+  width: 25px; /* 设置图标宽度 */
+  height: 25px; /* 设置图标高度 */
+}
+
+.button-icon4 {
+  width: 30px; /* 设置图标宽度 */
+  height: 30px; /* 设置图标高度 */
+}
+
+.slider-container {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   margin-bottom: 10px;
 }
 
 .right-sidebar label {
-  width: 80px;
+  margin-bottom: 5px;
 }
 
 .right-sidebar input[type="range"] {
-  flex: 1;
-  margin: 0 10px;
+  width: 100%;
+  margin-bottom: 5px;
 }
 
 .right-sidebar span {
-  width: 40px;
+  width: 100%;
   text-align: right;
+  margin-bottom: 5px;
+}
+
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.extra-button {
+  flex: 1 1 30%;
+  padding: 5px;
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border: 1px solid #2c2c2c;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.extra-button:hover {
+  background-color: #4a4a4a;
 }
 </style>

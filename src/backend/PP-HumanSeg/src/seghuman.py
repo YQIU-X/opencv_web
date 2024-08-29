@@ -13,7 +13,7 @@ class Args:
         self.bg_img_path = None
         self.img_path = None
         self.save_dir = None
-        self.config = '.\inference_models\portrait_pp_humansegv2_lite_256x144_inference_model_with_softmax\deploy.yaml'
+        self.config = '.\\src\\backend\\PP-HumanSeg\\inference_models\\portrait_pp_humansegv2_lite_256x144_inference_model_with_softmax\\deploy.yaml'
 
 def get_bg_img(bg_img_path, img_shape):
     if bg_img_path is None:
@@ -38,7 +38,7 @@ def seg_image(img, bg_img):
     return out_img
 
 if __name__ == "__main__":
-    img = cv2.imread(".\data\images\portrait_heng.jpg")
+    img = cv2.imread(".\\src\\backend\\PP-HumanSeg\\data\\images\\portrait_heng.jpg")
     bg_img = get_bg_img(None, img.shape)
     segimage = seg_image(img, bg_img)
     cv2.imshow('aa', segimage)

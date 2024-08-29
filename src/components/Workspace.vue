@@ -1,8 +1,6 @@
 <template>
   <div class="workspace"
-       @mousedown="handleMouseDown"
-       @mousemove="handleMouseMove"
-       @mouseup="handleMouseUp">
+       @mousedown="handleMouseDown">
     <img :src="currentImage" alt="当前图片" ref="image" draggable="false" />
   </div>
 </template>
@@ -18,24 +16,28 @@ export default {
   },
   data () {
     return {
-      isDragging: false // 判断是否正在拖动
+      clickTimeout: null, // 用于检测双击定时器
+      laskClickTime: 0 // 上一次点击时间
     }
   },
   methods: {
     handleMouseDown (event) {
-      console.log('Mouse down triggered')
-      this.isDragging = true // 开始拖动
-      this.sendCoordinates(event)
-    },
-    handleMouseMove (event) {
-      if (this.isDragging) {
-        console.log('Mouse move triggered')
-        this.sendCoordinates(event)
+      if (event.button !== 0) return // 仅处理左键点击
+
+      const currentTime = new Date().getTime()
+      const timeSinceLastClick = currentTime - this.lastClickTime
+
+      if (timeSinceLastClick < 300) {
+        clearTimeout(this.clickTimeout) // 如果在300ms内再次点击，取消之前的单击事件
+        this.lastClickTime = 0 // 重置点击时间
+      } else {
+        this.lastClickTime = currentTime
+
+        this.clickTimeout = setTimeout(() => {
+          console.log('Single click detected')
+          this.sendCoordinates(event)
+        }, 300) // 延迟300ms后判断为单击事件
       }
-    },
-    handleMouseUp () {
-      console.log('Mouse up triggered')
-      this.isDragging = false // 停止拖动
     },
     sendCoordinates (event) {
       const img = this.$refs.image

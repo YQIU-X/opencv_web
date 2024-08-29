@@ -13,7 +13,8 @@ def click_coordinates():
     data = request.json
     x = data.get('x')
     y = data.get('y')
-
+    print(x)
+    print(y)
     return jsonify({"status": "success", "x": x, "y": y})
 
 if __name__ == '__main__':

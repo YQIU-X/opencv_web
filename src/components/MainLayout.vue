@@ -79,16 +79,21 @@ export default {
         this.backendImage = this.allImages.length > 0 ? this.allImages[0].src : ''
       }
     },
-    overwriteImage ({ index, newSrc }) {
-      if (index >= 0 && index < this.allImages.length) {
-        // Overwrite the original image in the allImages array
-        this.allImages[index].src = newSrc
+    overwriteImage (newImageSrc) {
+      console.log('即将覆盖的图像路径：', newImageSrc)
 
-        // Update the originalImage and backendImage paths
-        this.originalImage = newSrc
-        this.backendImage = newSrc
+      // 找到原始图像在 allImages 数组中的索引
+      const imageIndex = this.allImages.findIndex(image => image.src === this.originalImage)
+
+      if (imageIndex !== -1) {
+        // 更新 allImages 数组中对应的图片的 src
+        this.allImages[imageIndex].src = newImageSrc
+
+        // 更新 originalImage 和 backendImage
+        this.originalImage = newImageSrc
+        this.backendImage = newImageSrc
       } else {
-        console.warn('Invalid image index.')
+        console.warn('未找到需要覆盖的原图。')
       }
     }
   }

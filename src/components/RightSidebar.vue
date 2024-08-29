@@ -116,7 +116,7 @@ export default {
 .right-sidebar {
   width: 300px;
   padding: 10px;
-  background-color: #2c2c2c;
+  background-color: #191515;
   color: #ffffff;
   position: relative; /* 使内部绝对定位的元素相对于此元素定位 */
 }
@@ -160,7 +160,7 @@ export default {
 }
 
 .connected-button:hover {
-  background-color: #4a4a4a;
+  background-color: #2c2c2c;
 }
 
 .right-sidebar div {

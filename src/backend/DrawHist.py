@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib
+from matplotlib import patheffects  # 导入 path_effects 模块
 matplotlib.use('Agg')  # 设置后端为 Agg
 from scipy.ndimage import gaussian_filter1d
 from io import BytesIO
@@ -14,25 +15,32 @@ CORS(app)  # 启用 CORS，允许来自所有来源的请求
 
 def drawHist(image):
     colors = ('b', 'g', 'r')
-    plt.figure(figsize=(10, 6))
+    
+    # 创建一个带灰色背景的图形
+    fig, ax = plt.subplots(figsize=(10, 6))
+    fig.patch.set_facecolor('#191515')  # 整个图形背景设置为灰色
+    ax.set_facecolor('#191515')  # 坐标轴背景设置为灰色
 
     for i, color in enumerate(colors):
         hist = cv2.calcHist([image], [i], None, [256], [0, 256])
         hist = gaussian_filter1d(hist, sigma=2)  # 平滑处理
-        plt.plot(hist, color=color, linewidth=2, alpha=0.8)  # 增加线条宽度和透明度
+        
+        # 绘制曲线，并添加白色边缘效果
+        ax.plot(hist, color=color, linewidth=2, alpha=0.8,
+                path_effects=[patheffects.Stroke(linewidth=4, foreground='white'),
+                              patheffects.Normal()])
 
-    plt.title('Color Histogram', fontsize=16, fontweight='bold')
-    plt.xlabel('Pixel Intensity', fontsize=14)
-    plt.ylabel('Frequency', fontsize=14)
-    plt.xlim([0, 256])
-    plt.grid(True, linestyle='--', alpha=0.7)  # 添加网格
-    plt.gca().set_facecolor('#1c1c1c')  # 设置背景颜色
+    ax.set_xlim([0, 256])
+    
+    # 去除网格、坐标轴及其标签
+    ax.grid(False)
+    ax.axis('off')
 
     # 将绘制的直方图保存到一个内存文件
     buf = BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
     buf.seek(0)
-    plt.close()
+    plt.close(fig)
 
     # 从 BytesIO 读取图像并将其转换为 NumPy 数组
     img_array = np.frombuffer(buf.getvalue(), dtype=np.uint8)
@@ -60,20 +68,17 @@ def base64_to_image(base64_string):
 
 @app.route('/upload_image', methods=['POST'])
 def upload_image():
-    print("999999999999999999999999999999")
     # 获取前端发送的图像数据
     data = request.get_json()
     image_data = data['image']
     
     if not image_data:
-        print("not base64_image")
         return jsonify({'error': 'No image data provided'}), 400
 
     # 解码 Base64 编码的图像数据
     image = base64_to_image(image_data)
 
     if image is None:
-        print("image is None")
         return jsonify({'error': 'Failed to decode image'}), 400
 
     # 绘制直方图
@@ -86,8 +91,6 @@ def upload_image():
 
     # 将编码后的图像转换为 Base64 编码
     encoded_image = base64.b64encode(buffer).decode('utf-8')
-
-    print(encoded_image[:100])  # 仅打印前100个字符以检查格式
 
     return jsonify({'image': encoded_image})
 

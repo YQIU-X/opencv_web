@@ -1,49 +1,38 @@
+
+# PORT: http://localhost:5000/upload_images
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import cv2
 import numpy as np
-import base64
+import sys
+sys.path.append(".")
+from src.backend.Utils import image_2_base64
+from src.backend.data.ImageManager import ImageManager
 
 app = Flask(__name__)
-CORS(app)  # 允许所有源的请求，你可以根据需要配置更具体的规则
+CORS(app)
 
-def base64_to_image(base64_string):
-    if ',' in base64_string:
-        base64_string = base64_string.split(',')[1]
-
-    img_data = base64.b64decode(base64_string)
-    nparr = np.frombuffer(img_data, np.uint8)
-    
-    if nparr.size == 0:
-        print("Failed to convert base64 to image array")
-        return None
-
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-    if img is None:
-        print("Failed to decode image")
-
-    return img
-
-def create_lut(level):
-    # 创建一个查找表（LUT），范围从0到255
-    lut = np.arange(256, dtype=np.uint8)
-    # 更复杂的颜色映射，这里使用简单的线性映射作为示例
-    # 实际上，可以在这里使用更复杂的非线性映射
-    for i in range(256):
-        if i + level > 255:
-            lut[i] = 255
-        elif i + level < 0:
-            lut[i] = 0
-        else:
-            lut[i] = i + level
-    return lut
-
-def apply_lut(image, lut):
-    # 使用OpenCV的LUT函数应用查找表
-    return cv2.LUT(image, lut)
-
+# 色温
 def color_temperature(input, n):
+    def create_lut(level):
+        # 创建一个查找表（LUT），范围从0到255
+        lut = np.arange(256, dtype=np.uint8)
+        # 更复杂的颜色映射，这里使用简单的线性映射作为示例
+        # 实际上，可以在这里使用更复杂的非线性映射
+        for i in range(256):
+            if i + level > 255:
+                lut[i] = 255
+            elif i + level < 0:
+                lut[i] = 0
+            else:
+                lut[i] = i + level
+        return lut
+
+    def apply_lut(image, lut):
+        # 使用OpenCV的LUT函数应用查找表
+        return cv2.LUT(image, lut)
+    
     result = input.copy()
     level = n // 2
     # 创建查找表并应用它到RGB通道
@@ -55,6 +44,7 @@ def color_temperature(input, n):
     result[:, :, 0] = apply_lut(result[:, :, 0], lut_b)
     return result
 
+# 色调
 def adjust_hue(image, hue_shift):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
@@ -62,6 +52,7 @@ def adjust_hue(image, hue_shift):
     hsv_adjusted = cv2.merge((h, s, v))
     return cv2.cvtColor(hsv_adjusted, cv2.COLOR_HSV2BGR)
 
+# 映射函数
 def map_value(contrast):
     if -100 <= contrast <= 0:
         return (contrast + 100) / 100
@@ -69,12 +60,12 @@ def map_value(contrast):
         return contrast / 10 + 1
     else:
         raise ValueError("输入值超出预期范围")
-    
+
+# 曝光
 def adjust_exposure(image, alpha):
     return cv2.convertScaleAbs(image, alpha=map_value(alpha))
 
-
-    
+# 对比度
 def adjust_contrast(img, contrast):
     fI = img / 255.0
 
@@ -96,38 +87,33 @@ def adjust_contrast(img, contrast):
 @app.route('/adjust_image', methods=['POST'])
 def adjust_image():
     data = request.json
+
     temprature = int(data.get('temprature', 0))
     hue = int(data.get('hue', 0))
     exposure = int(data.get('exposure', 0))
     contrast = int(data.get('contrast', 0))
-    base64_image = data.get('image')
-    
-    # print(base64_image)
+    image_id = data.get('image_id')
+    manager = ImageManager()
 
-    if not base64_image:
-        print("not base64_image")
-        return jsonify({'error': 'No image data provided'}), 400
+    img, _ = manager.get_last_image(image_id)
+    config = {"temperature": temprature, "hue": hue, "exposure": exposure, "contrast": contrast}
+    manager.forward_image(image_id, img, config)  # 存图
 
-    # 解码 Base64 编码的图像数据
-    image = base64_to_image(base64_image)
-
-    if image is None:
+    if img is None:
         print("image is None")
         return jsonify({'error': 'Failed to decode image'}), 400
 
-    image = color_temperature(image, temprature)
-    image = adjust_hue(image, hue)
-    image = adjust_exposure(image, exposure)
-    image = adjust_contrast(image, contrast)
+    img = color_temperature(img, temprature)
+    img = adjust_hue(img, hue)
+    img = adjust_exposure(img, exposure)
+    img = adjust_contrast(img, contrast)
+    print(config)
+    manager.set_current_image(image_id, img)  # 设当前图
 
-    # 将图像编码为 JPEG 格式
-    _, buffer = cv2.imencode('.jpg', image)
-    if not _:
-        return jsonify({'error': 'Failed to encode image'}), 500
+    encoded_image = image_2_base64(img)
 
-    # 将编码后的图像转换为 Base64 编码
-    encoded_image = base64.b64encode(buffer).decode('utf-8')
-    return jsonify({'image': encoded_image})
+    manager.save_images()  # 存文件
+    return jsonify({'image': encoded_image, 'config' : config})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=False, port=5000, threaded=True)

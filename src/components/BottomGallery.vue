@@ -1,12 +1,12 @@
 <template>
   <div class="bottom-gallery" @click="hideContextMenu">
     <img
-      v-for="image in images"
+      v-for="image in Images"
       :src="image.src"
       :key="image.id"
-      :class="{'selected': image.src === selectedImage}"
+      :class="{'selected': image.id === selectedImage.id}"
       class="thumbnail"
-      @click="selectImage(image.src)"
+      @click="selectImage(image)"
       @contextmenu.prevent="showContextMenu($event, image)"
     />
     <div v-if="contextMenuVisible" :style="{ top: `${contextMenuY}px`, left: `${contextMenuX}px` }" class="context-menu">
@@ -21,14 +21,18 @@
 export default {
   name: 'BottomGallery',
   props: {
-    selectedImage: {
-      type: String,
-      default: ''
+    selectedImage: { // equivalent to currentImage in MainLayout
+      type: Object,
+      default: () => ({
+        id: '',
+        src: '',
+        config: {}
+      })
     }
   },
   data () {
     return {
-      images: [],
+      Images: [], // [{id, src, config}]
       contextMenuVisible: false,
       contextMenuX: 0,
       contextMenuY: 0,
@@ -37,7 +41,7 @@ export default {
   },
   methods: {
     updateImages () {
-      fetch('http://localhost:5006/upload_images', {
+      fetch('http://localhost:5006/load_images', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -51,20 +55,26 @@ export default {
         })
         .then(data => {
           if (data && data.images) {
-            this.allImages = data.images.map(image => ({
+            console.log('datadatadata', data.images)
+            this.Images = data.images.map(image => ({
               id: image.id,
-              src: `data:image/jpeg;base64,${image.src}`
+              src: `data:image/jpeg;base64,${image.img64}`,
+              config: image.config
             }))
+
+            if (this.Images.length > 0 && this.selectedImage !== null) {
+              this.selectImage(this.Images[0])
+            }
           }
         })
         .catch(error => {
           console.error('Error fetching and updating images:', error)
         })
     },
-
-    selectImage (src) {
-      this.$emit('select-image', src)
+    selectImage (image) {
+      this.$emit('select-image', image)
     },
+
     showContextMenu (event, image) {
       this.contextMenuX = event.clientX
       this.contextMenuY = event.clientY
@@ -94,10 +104,11 @@ export default {
 }
 
 .thumbnail {
-  width: 100px;
-  height: 100px;
+  width: 95px; /* Adjusted to account for the inward border */
+  height: 95px; /* Adjusted to account for the inward border */
   object-fit: cover;
   transition: border 0.3s ease;
+  box-sizing: border-box; /* Ensures the border is added inside */
 }
 
 .thumbnail.selected {

@@ -1,17 +1,23 @@
+
+# PORT: http://localhost:5003/load_images
+
 from flask import Flask, request, jsonify
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib
-from matplotlib import patheffects  # 导入 path_effects 模块
+from matplotlib import patheffects
 matplotlib.use('Agg')  # 设置后端为 Agg
 from scipy.ndimage import gaussian_filter1d
 from io import BytesIO
-import base64
 from flask_cors import CORS
+import sys
+sys.path.append(".")
+from src.backend.Utils import image_2_base64
+from src.backend.data.ImageManager import ImageManager
 
 app = Flask(__name__)
-CORS(app)  # 启用 CORS，允许来自所有来源的请求
+CORS(app)
 
 def drawHist(image):
     colors = ('b', 'g', 'r')
@@ -48,51 +54,25 @@ def drawHist(image):
 
     return img
 
-def base64_to_image(base64_string):
-    if ',' in base64_string:
-        base64_string = base64_string.split(',')[1]
 
-    img_data = base64.b64decode(base64_string)
-    nparr = np.frombuffer(img_data, np.uint8)
-    
-    if nparr.size == 0:
-        print("Failed to convert base64 to image array")
-        return None
-
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-    if img is None:
-        print("Failed to decode image")
-
-    return img
-
-@app.route('/upload_image', methods=['POST'])
+@app.route('/fetch_histogram', methods=['POST'])
 def upload_image():
-    # 获取前端发送的图像数据
     data = request.get_json()
-    image_data = data['image']
-    
-    if not image_data:
-        return jsonify({'error': 'No image data provided'}), 400
+    image_id_value = data.get('id')
 
-    # 解码 Base64 编码的图像数据
-    image = base64_to_image(image_data)
 
-    if image is None:
-        return jsonify({'error': 'Failed to decode image'}), 400
+    if isinstance(image_id_value, str):
+        image_id = int(image_id_value, 0)
+    else:
+        image_id = int(image_id_value)
+    print("image_id_value", image_id)
+    manager = ImageManager()
+    img = manager.get_current_image(image_id)
+    hist_img = drawHist(img)
 
-    # 绘制直方图
-    hist_img = drawHist(image)
-
-    # 将图像编码为 JPEG 格式
-    _, buffer = cv2.imencode('.jpg', hist_img)
-    if not _:
-        return jsonify({'error': 'Failed to encode image'}), 500
-
-    # 将编码后的图像转换为 Base64 编码
-    encoded_image = base64.b64encode(buffer).decode('utf-8')
+    encoded_image = image_2_base64(hist_img)
 
     return jsonify({'image': encoded_image})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5003)
+    app.run(debug=False, port=5003, threaded=True)

@@ -2,15 +2,21 @@
   <div class="main-layout">
     <LeftSidebar @upload_images="upload_images" />
     <div class="content">
-      <Workspace :currentImage="currentImg" />
+      <Workspace :Img="currentImage ? currentImage.src : ''" />
       <BottomGallery
-        :images="allImages"
-        :selectedImage="backendImage"
-        @select-image="updateCurrentImage"
+        ref="bottomGallery"
+        :selectedImage="currentImage ? currentImage : ''"
+        @select-image="select_image"
         @remove-image="removeImage"
       />
     </div>
-    <RightSidebar :backendImage="backendImage" @update-settings="updateSettings" />
+    <RightSidebar
+    :temprature="currentImage ? currentImage.config.temprature : 0"
+    :hue="currentImage ? currentImage.config.hue : 0"
+    :exposure="currentImage ? currentImage.config.exposure : 0"
+    :contrast="currentImage ? currentImage.config.contrast : 0"
+    :Image="currentImage ? currentImage : null"
+    @update-settings="updateSettings" />
   </div>
 </template>
 
@@ -30,25 +36,31 @@ export default {
   },
   data () {
     return {
-      storedImageIds: [],
-      currentImg: null
+      currentImage: null // {id, src 64, config}
     }
   },
   methods: {
-    upload_images (data) {
-      this.storedImageIds = data.image_ids
-      console.log('Received image IDs:', data.image_ids)
-      console.log('Received first image base64:', data.first_image)
+    upload_images (data) { // get the current image
       if (data.first_image !== null && data.first_image !== undefined) {
-        this.currentImg = `data:image/jpeg;base64,${data.first_image}`
+        this.currentImage = {
+          id: 1,
+          src: `data:image/jpeg;base64,${data.first_image}`,
+          config: data.config
+        }
+        this.select_image(this.currentImage)
       }
+      this.$refs.bottomGallery.updateImages()
     },
-    updateCurrentImage (imageSrc) {
-      this.originalImage = imageSrc
-      this.backendImage = imageSrc
+    freshCurrentImage (img64, newConfig) {
+      this.currentImage.src = img64
+      this.currentImage.config = newConfig
+      this.$refs.bottomGallery.updateImages()
+    },
+    select_image (image) {
+      this.currentImage = image
     },
     updateSettings (settings) {
-      if (!this.originalImage) return
+      if (!this.currentImage) return
 
       fetch('http://localhost:5000/adjust_image', {
         method: 'POST',
@@ -57,7 +69,7 @@ export default {
         },
         body: JSON.stringify({
           ...settings,
-          image: this.originalImage
+          image_id: this.currentImage.id
         })
       })
         .then(response => {
@@ -67,12 +79,14 @@ export default {
           return response.json()
         })
         .then(data => {
-          this.backendImage = `data:image/jpeg;base64,${data.image}`
+          const base64Image = `data:image/jpeg;base64,${data.image}`
+          this.freshCurrentImage(base64Image, data.config)
         })
         .catch(error => {
           console.error('Error updating image:', error)
         })
     },
+
     removeImage (imageSrc) {
       this.allImages = this.allImages.filter(image => image.src !== imageSrc)
       if (this.backendImage === imageSrc) {
@@ -96,6 +110,9 @@ export default {
         console.warn('未找到需要覆盖的原图。')
       }
     }
+  },
+  mounted () {
+    this.$refs.bottomGallery.updateImages()
   }
 }
 </script>
@@ -107,7 +124,7 @@ export default {
 }
 
 .left-sidebar {
-  flex: 0 0 200px; /* Fixed width */
+  flex: 0 0 150px; /* Fixed width */
 }
 
 .right-sidebar {

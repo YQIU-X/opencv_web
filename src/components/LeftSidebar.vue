@@ -60,11 +60,10 @@ export default {
           return response.json()
         })
         .then(data => {
-          console.log('Received IDs from backend:', data.image_ids)
           console.log('Received img from backend:', data.first_image)
           this.$emit('upload_images', {
-            image_ids: data.image_ids,
-            first_image: data.first_image
+            first_image: data.first_image,
+            config: data.config
           })
         })
         .catch(error => {

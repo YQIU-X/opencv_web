@@ -9,7 +9,7 @@
     <!-- 按钮行 -->
     <div class="button-row">
       <button @click="currentPage = 1" class="connected-button">
-        <img src="../../items/dataIcon.png" alt="按钮1" class="button-icon1" />
+        <img src="../assets/dataIcon.png" alt="按钮1" class="button-icon1" />
       </button>
       <button @click="currentPage = 2" class="connected-button">
         <img src="path/to/image2.png" alt="按钮2" class="button-icon" />
@@ -18,7 +18,7 @@
         <img src="path/to/image2.png" alt="按钮3" class="button-icon" />
       </button>
       <button @click="currentPage = 4" class="connected-button">
-        <img src="../../items/bergerIcon.png" alt="按钮4" class="button-icon4" />
+        <img src="../assets/bergerIcon.png" alt="按钮4" class="button-icon4" />
       </button>
     </div>
     <!-- 根据 currentPage 显示不同的内容 -->
@@ -68,50 +68,45 @@
 export default {
   name: 'RightSidebar',
   props: {
-    selectedImage: {
-      type: String,
-      default: ''
+    temprature: {
+      type: Number,
+      default: 0
     },
-    backendImage: {
-      type: String,
-      required: true
+    hue: {
+      type: Number,
+      default: 0
+    },
+    exposure: {
+      type: Number,
+      default: 0
+    },
+    contrast: {
+      type: Number,
+      default: 0
+    },
+    Image: {
+      type: Object,
+      default: null
     }
   },
   data () {
     return {
       histogramImage: '',
-      temprature: 0,
-      hue: 0,
-      exposure: 0,
-      contrast: 0,
-      currentPage: 1 // 控制当前显示的页面
+      currentPage: 1
     }
   },
   watch: {
-    backendImage: {
+    Image: {
       immediate: true,
       handler (newImage) {
-        this.fetchHistogram(newImage)
-      }
+        if (newImage && newImage.id) {
+          this.fetchHistogram(newImage.id)
+        }
+      },
+      deep: true
     }
   },
   methods: {
-    fetchHistogram (imageData) {
-      fetch('http://localhost:5003/upload_image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ image: imageData })
-      })
-        .then(response => response.json())
-        .then(data => {
-          this.histogramImage = `data:image/jpeg;base64,${data.image}`
-        })
-        .catch(error => {
-          console.error('Error fetching histogram:', error)
-        })
-    },
     emitChanges () {
       this.$emit('update-settings', {
         temprature: this.temprature,
@@ -120,18 +115,21 @@ export default {
         contrast: this.contrast
       })
     },
-    resetSettings () {
-      this.temprature = 0
-      this.hue = 0
-      this.exposure = 0
-      this.contrast = 0
-      this.emitChanges()
-    },
-    applySettings () {
-      this.emitChanges()
-    },
-    saveSettings () {
-      console.log('Settings saved!')
+    fetchHistogram (id) {
+      fetch('http://localhost:5003/fetch_histogram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: id })
+      })
+        .then(response => response.json())
+        .then(data => {
+          this.histogramImage = `data:image/jpeg;base64,${data.image}`
+        })
+        .catch(error => {
+          console.error('Error fetching histogram:', error)
+        })
     }
   }
 }
@@ -200,24 +198,25 @@ export default {
 
 .slider-container {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 10px;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
-.right-sidebar label {
-  margin-bottom: 5px;
+.slider-container label {
+  flex: 0 0 50px; /* Set a fixed width for the label */
+  font-size: 0.9em;
+  margin-right: 10px; /* Space between label and slider */
 }
 
-.right-sidebar input[type="range"] {
-  width: 100%;
-  margin-bottom: 5px;
+.slider-container input[type="range"] {
+  flex: 1; /* Take up the remaining space */
+  margin-right: 10px; /* Space between slider and value */
 }
 
-.right-sidebar span {
-  width: 100%;
+.slider-container span {
+  flex: 0 0 30px; /* Set a fixed width for the value */
+  font-size: 0.9em;
   text-align: right;
-  margin-bottom: 5px;
 }
 
 .button-container {

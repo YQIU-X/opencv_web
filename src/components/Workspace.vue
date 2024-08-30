@@ -1,7 +1,7 @@
 <template>
   <div class="workspace"
        @mousedown="handleMouseDown">
-    <img :src="currentImage" alt="当前图片" ref="image" draggable="false" />
+    <img :src="Img" alt="当前图片" ref="image" draggable="false" />
   </div>
 </template>
 
@@ -9,7 +9,7 @@
 export default {
   name: 'Workspace',
   props: {
-    currentImage: {
+    Img: {
       type: String,
       default: null
     }

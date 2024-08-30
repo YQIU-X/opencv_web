@@ -2,6 +2,10 @@ import cv2
 import numpy as np
 import base64
 
+# 统一变量命名
+# img   为图片
+# image 为{img, config}
+
 def base64_2_image(base64_string):
     
     if ',' in base64_string:
@@ -27,14 +31,3 @@ def image_2_base64(image):
     return encoded_image
 
 
-def IMG_Back(IMG):
-    if len(IMG["deque"]) == 1:
-        return IMG["raw"]
-    else:
-        return IMG["deque"].pop()
-
-def IMG_Forward(IMG, img):
-    IMG["deque"].append(img)
-
-def IMG_Get(IMG):
-    return IMG["deque"][-1]

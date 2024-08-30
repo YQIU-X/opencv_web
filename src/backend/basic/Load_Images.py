@@ -1,5 +1,5 @@
 
-# PORT: http://localhost:5006/upload_images
+# PORT: http://localhost:5006/load_images
 
 
 from flask import Flask, jsonify
@@ -8,35 +8,28 @@ import os
 import pickle
 import sys
 sys.path.append(".")
-from src.backend.Utils import image_2_base64, IMG_Get
-from collections import deque
-
+from src.backend.Utils import image_2_base64
+from src.backend.data.ImageManager import ImageManager
 
 app = Flask(__name__)
 CORS(app)
 
-DATA_ROOT = ".\\src\\backend\\data"
-PICKLE_FILE = os.path.join(DATA_ROOT, 'IMGs.pkl')
-
-@app.route('/upload_images', methods=['POST'])
-def upload_images():
-    if os.path.exists(PICKLE_FILE):
-        with open(PICKLE_FILE, 'rb') as f:
-            IMGS = pickle.load(f)
-    else:
-        return jsonify({'error': 'No images found'}), 404
+@app.route('/load_images', methods=['POST'])
+def load_images():
+    manager = ImageManager()
 
     images = []
-    for image_id, IMG in IMGS.items():
-        img = IMG_Get(IMG)
+    for image_id in range(1, len(manager) + 1):
+        img = manager.get_current_image(image_id)
+        _, config = manager.get_last_image(image_id)
         img_base64 = image_2_base64(img)
         images.append({
             'id': image_id,
-            'src': img_base64
+            'img64': img_base64,
+            'config': config
         })
-        
 
     return jsonify({'images': images})
 
 if __name__ == '__main__':
-    app.run(port=5006)
+    app.run(debug=False, port=5006, threaded=True)

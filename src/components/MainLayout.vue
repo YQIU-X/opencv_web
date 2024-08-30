@@ -86,28 +86,9 @@ export default {
           console.error('Error updating image:', error)
         })
     },
-
-    removeImage (imageSrc) {
-      this.allImages = this.allImages.filter(image => image.src !== imageSrc)
-      if (this.backendImage === imageSrc) {
-        this.backendImage = this.allImages.length > 0 ? this.allImages[0].src : ''
-      }
-    },
-    overwriteImage (newImageSrc) {
-      console.log('即将覆盖的图像路径：', newImageSrc)
-
-      // 找到原始图像在 allImages 数组中的索引
-      const imageIndex = this.allImages.findIndex(image => image.src === this.originalImage)
-
-      if (imageIndex !== -1) {
-        // 更新 allImages 数组中对应的图片的 src
-        this.allImages[imageIndex].src = newImageSrc
-
-        // 更新 originalImage 和 backendImage
-        this.originalImage = newImageSrc
-        this.backendImage = newImageSrc
-      } else {
-        console.warn('未找到需要覆盖的原图。')
+    removeImage (imgId) {
+      if (this.currentImage && this.currentImage.id === imgId) {
+        this.currentImage = null
       }
     }
   },
@@ -120,35 +101,39 @@ export default {
 <style scoped>
 .main-layout {
   display: flex;
-  height: 100vh;
+  height: 98vh;
+  background-color: #000; /* 设置背景颜色为黑色，消除白色边框的视觉效果 */
+  border: none; /* 确保没有边框 */
+  outline: none; /* 确保没有轮廓 */
+  margin: 0; /* 确保没有外边距 */
+  padding: 0; /* 确保没有内边距 */
 }
-
 .left-sidebar {
-  flex: 0 0 150px; /* Fixed width */
+  flex: 0 0 150px; /* 固定宽度 */
 }
 
 .right-sidebar {
-  flex: 0 0 300px; /* Fixed width */
+  flex: 0 0 300px; /* 固定宽度 */
 }
 
 .content {
-  flex: 1; /* Make content take up the remaining space */
+  flex: 1; /* 使内容占据剩余空间 */
   display: flex;
   flex-direction: column;
 }
 
 .workspace {
-  flex: 1; /* Make workspace take up available space */
+  flex: 1; /* 使工作区占用可用空间 */
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #000;
-  min-height: 200px; /* Set minimum height */
-  max-height: calc(100vh - 100px); /* Set maximum height, subtracting bottom bar height */
+  background-color: #000; /* 设置工作区背景色 */
+  min-height: 200px; /* 设置最小高度 */
+  max-height: calc(100vh - 100px); /* 设置最大高度，减去底部栏的高度 */
 }
 
 .bottom-gallery {
-  height: 120px; /* Fixed height */
+  height: 120px; /* 固定高度 */
   background-color: #1c1c1c;
   overflow-x: auto;
 }

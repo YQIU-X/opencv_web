@@ -6,7 +6,6 @@
         <ul v-if="expandedSection === 'files'">
           <li @click.stop="triggerFileInput">打开照片</li>
           <li @click.stop="triggerFolderInput">打开文件夹</li>
-          <li>覆盖原图</li>
           <li>另存为</li>
         </ul>
       </transition>

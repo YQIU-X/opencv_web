@@ -19,7 +19,8 @@ def load_images():
     manager = ImageManager()
 
     images = []
-    for image_id in range(1, len(manager) + 1):
+
+    for image_id, _ in manager:
         img = manager.get_current_image(image_id)
         _, config = manager.get_last_image(image_id)
         img_base64 = image_2_base64(img)

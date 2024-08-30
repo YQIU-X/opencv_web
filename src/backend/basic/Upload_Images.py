@@ -30,10 +30,10 @@ def upload_images():
         file_extension = file.filename.split('.').pop().lower()
         if file_extension not in valid_extensions:
             continue
-
+        
         img = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_UNCHANGED)
-        image_id = len(manager) + 1
-        print(image_id)
+
+        image_id = manager.get_next_image_id()
 
         if index == 0 and len(manager) == 0:
             first_image_base64 = image_2_base64(img)

@@ -11,7 +11,7 @@
     />
     <div v-if="contextMenuVisible" :style="{ top: `${contextMenuY}px`, left: `${contextMenuX}px` }" class="context-menu">
       <ul>
-        <li @click="removeImage(contextMenuImage.src)">移除</li>
+        <li @click="removeImage(contextMenuImage.id)">移除</li>
       </ul>
     </div>
   </div>
@@ -55,7 +55,6 @@ export default {
         })
         .then(data => {
           if (data && data.images) {
-            console.log('datadatadata', data.images)
             this.Images = data.images.map(image => ({
               id: image.id,
               src: `data:image/jpeg;base64,${image.img64}`,
@@ -74,7 +73,24 @@ export default {
     selectImage (image) {
       this.$emit('select-image', image)
     },
-
+    removeImage (imageId) {
+      this.$emit('remove-image', imageId)
+      this.hideContextMenu()
+      fetch('http://localhost:5002/remove_image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: imageId })
+      })
+        .then(response => response.json())
+        .then(() => {
+          this.updateImages()
+        })
+        .catch(error => {
+          console.error('erro remove img:', error)
+        })
+    },
     showContextMenu (event, image) {
       this.contextMenuX = event.clientX
       this.contextMenuY = event.clientY
@@ -83,10 +99,6 @@ export default {
     },
     hideContextMenu () {
       this.contextMenuVisible = false
-    },
-    removeImage (imageSrc) {
-      this.$emit('remove-image', imageSrc)
-      this.hideContextMenu()
     }
   }
 }

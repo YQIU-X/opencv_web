@@ -10,10 +10,12 @@ def run_scripts():
     upload_images_process = subprocess.Popen(["python", os.path.join(root,"basic/Upload_Images.py")])
     adjust_img_process = subprocess.Popen(["python", os.path.join(root, "basic/Adjust_Img.py")])
     draw_hist_process = subprocess.Popen(["python", os.path.join(root,"basic/Draw_Hist.py")])
+    remove_img_process = subprocess.Popen(["python", os.path.join(root, "basic/Remove_Image.py")])
     process.append(load_images_process)
     process.append(upload_images_process)
     process.append(adjust_img_process)
     process.append(draw_hist_process)
+    process.append(remove_img_process)
 
 
     print("Starting scripts...")

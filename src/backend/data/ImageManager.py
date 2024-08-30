@@ -28,14 +28,18 @@ class ImageManager:
     def __init__(self):
         self.pickle_file = PICKLE_FILE
         self.data = {}
+        self.max_image_id = 0
         self.load_images()
 
     def load_images(self):
         if os.path.exists(self.pickle_file):
             with open(self.pickle_file, 'rb') as f:
                 self.data = pickle.load(f)
+                if self.data:
+                    self.max_image_id = max(self.data.keys())
         else:
             print(f"Pickle file {self.pickle_file} not found")
+
 
     def save_images(self):
         with open(self.pickle_file, 'wb') as f:
@@ -59,11 +63,19 @@ class ImageManager:
         """获取现在图像"""
         image_dic = self.data[id]
         return image_dic["current"]
+
+    def get_next_image_id(self):
+        """获取下一个可用的 image_id"""
+        self.max_image_id += 1
+        return self.max_image_id
     
     def set_current_image(self, id, img):
         """获取现在图像"""
         image_dic = self.data[id]
         image_dic["current"] = img
+
+    def delete_image(self, id):
+        del self.data[id]
 
     def back_image(self, id):
         """回退一张图像"""

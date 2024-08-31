@@ -23,6 +23,7 @@
     </div>
     <!-- 根据 currentPage 显示不同的内容 -->
     <div v-if="currentPage === 1">
+      <h3>白平衡</h3>
       <div class="slider-container">
         <label>色温</label>
         <input type="range" min="-100" max="100" v-model="temprature" @input="emitChanges" />
@@ -33,6 +34,7 @@
         <input type="range" min="-90" max="90" v-model="hue" @input="emitChanges" />
         <span>{{ hue }}</span>
       </div>
+      <h3>色调</h3>
       <div class="slider-container">
         <label>曝光</label>
         <input type="range" min="-100" max="100" v-model="exposure" @input="emitChanges" />
@@ -43,6 +45,7 @@
         <input type="range" min="-50" max="50" v-model="contrast" @input="emitChanges" />
         <span>{{ contrast }}</span>
       </div>
+      <h3>偏好</h3>
       <div class="slider-container">
         <label>锐化</label>
         <input type="range" min="0" max="100" v-model="sharpen" @input="emitChanges" />
@@ -229,12 +232,12 @@ export default {
 .slider-container {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .slider-container label {
   flex: 0 0 50px; /* Set a fixed width for the label */
-  font-size: 0.9em;
+  font-size: 1em;
   margin-right: 10px; /* Space between label and slider */
 }
 

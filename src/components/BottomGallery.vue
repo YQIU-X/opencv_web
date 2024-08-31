@@ -71,7 +71,6 @@ export default {
         })
     },
     selectImage (image) {
-      this.selectedImage = image
       this.$emit('select-image', image)
     },
     removeImage (imageId) {

@@ -64,10 +64,19 @@ class ImageManager:
         image_dic = self.data[id]
         return image_dic["current"]
 
+
     def get_next_image_id(self):
         """获取下一个可用的 image_id"""
         self.max_image_id += 1
         return self.max_image_id
+    
+    def get_next_image(self, id):
+        """获取下一个图片_id"""
+        sorted_keys = sorted(self.data.keys())
+        current_index = sorted_keys.index(id)
+        next_index = (current_index + 1) % len(sorted_keys)
+        next_key = sorted_keys[next_index]
+        return self.get_current_image(next_key), next_key
     
     def set_current_image(self, id, img):
         """获取现在图像"""
@@ -84,7 +93,9 @@ class ImageManager:
             item = image_dic["deque"][-1]
             return item["img"], item["config"]
         else:
-            item = image_dic["deque"].pop()
+            self.data[id]['deque'].pop()
+            image_dic = self.data[id]
+            item = image_dic["deque"][-1]
             return item["img"], item["config"]
         
 

@@ -61,6 +61,10 @@
         <button v-for="n in 10" :key="n" class="extra-button" @click="n === 10 ? processImage() : null">按钮 {{ n }}</button>
       </div>
     </div>
+    <div class="bottom-button-row">
+      <button @click="$emit('undo-action')" class="bottom-button">撤回</button>
+      <button @click="$emit('next-image')" class="bottom-button">下一张</button>
+    </div>
   </div>
 </template>
 
@@ -130,6 +134,12 @@ export default {
         .catch(error => {
           console.error('Error fetching histogram:', error)
         })
+    },
+    emitUndoAction () {
+      this.$emit('undo-action')
+    },
+    emitNextImage () {
+      this.$emit('next-image')
     }
   }
 }
@@ -238,6 +248,41 @@ export default {
 }
 
 .extra-button:hover {
+  background-color: #4a4a4a;
+}
+
+.bottom-button-row {
+  position: absolute;
+  bottom: 0;
+  width: 95%; /* 确保按钮占据侧边栏的全部宽度 */
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  background-color: #2c2c2c; /* 设置背景色，以区分按钮和其他部分 */
+}
+
+.bottom-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.bottom-button {
+  flex: 1;
+  padding: 10px;
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border: 1px solid #2c2c2c;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.bottom-button:not(:last-child) {
+  margin-right: 10px;
+}
+
+.bottom-button:hover {
   background-color: #4a4a4a;
 }
 </style>

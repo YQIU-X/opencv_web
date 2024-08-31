@@ -1,11 +1,8 @@
 
 # PORT: http://localhost:5006/load_images
 
-
 from flask import Flask, jsonify
 from flask_cors import CORS
-import os
-import pickle
 import sys
 sys.path.append(".")
 from src.backend.Utils import image_2_base64

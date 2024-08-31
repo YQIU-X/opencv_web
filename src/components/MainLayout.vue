@@ -11,12 +11,15 @@
       />
     </div>
     <RightSidebar
-    :temprature="currentImage ? currentImage.config.temprature : 0"
-    :hue="currentImage ? currentImage.config.hue : 0"
-    :exposure="currentImage ? currentImage.config.exposure : 0"
-    :contrast="currentImage ? currentImage.config.contrast : 0"
-    :Image="currentImage ? currentImage : null"
-    @update-settings="updateSettings" />
+      :temprature="currentImage ? currentImage.config.temprature : 0"
+      :hue="currentImage ? currentImage.config.hue : 0"
+      :exposure="currentImage ? currentImage.config.exposure : 0"
+      :contrast="currentImage ? currentImage.config.contrast : 0"
+      :Image="currentImage ? currentImage : null"
+      @update-settings="updateSettings"
+      @undo-action="undoAction"
+      @next-image="nextImage"
+    />
   </div>
 </template>
 
@@ -89,6 +92,53 @@ export default {
     removeImage (imgId) {
       if (this.currentImage && this.currentImage.id === imgId) {
         this.currentImage = null
+      }
+    },
+    undoAction () {
+      if (this.currentImage && this.currentImage.id) {
+        fetch('http://localhost:5004/undo_action', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: this.currentImage.id })
+        })
+          .then(response => response.json())
+          .then(data => {
+            this.currentImage = {
+              id: data.id,
+              src: `data:image/jpeg;base64,${data.src}`,
+              config: data.config
+            }
+            this.select_image(this.currentImage)
+            this.$refs.bottomGallery.updateImages()
+          })
+          .catch(error => {
+            console.error('Error in undoAction:', error)
+          })
+      }
+    },
+    nextImage () {
+      if (this.currentImage && this.currentImage.id) {
+        fetch('http://localhost:5007/next_image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: this.currentImage.id })
+        })
+          .then(response => response.json())
+          .then(data => {
+            this.currentImage = {
+              id: data.id,
+              src: `data:image/jpeg;base64,${data.src}`,
+              config: data.config
+            }
+            this.select_image(this.currentImage)
+          })
+          .catch(error => {
+            console.error('Error in nextImage:', error)
+          })
       }
     }
   },

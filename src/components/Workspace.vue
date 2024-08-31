@@ -38,31 +38,31 @@ export default {
           this.sendCoordinates(event)
         }, 300) // 延迟300ms后判断为单击事件
       }
-    },
-    sendCoordinates (event) {
-      const img = this.$refs.image
-      const rect = img.getBoundingClientRect()
-
-      // 计算鼠标点击的坐标相对于图片的位置
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
-
-      // 发送坐标到后端
-      fetch('http://localhost:5001/click_coordinates', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ x, y })
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Coordinates sent successfully:', data)
-        })
-        .catch(error => {
-          console.error('Error sending coordinates:', error)
-        })
     }
+    // sendCoordinates (event) {
+    //   const img = this.$refs.image
+    //   const rect = img.getBoundingClientRect()
+
+    //   // 计算鼠标点击的坐标相对于图片的位置
+    //   const x = event.clientX - rect.left
+    //   const y = event.clientY - rect.top
+
+    //   // 发送坐标到后端
+    //   fetch('http://localhost:5001/click_coordinates', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify({ x, y })
+    //   })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //       console.log('Coordinates sent successfully:', data)
+    //     })
+    //     .catch(error => {
+    //       console.error('Error sending coordinates:', error)
+    //     })
+    // }
   }
 }
 </script>

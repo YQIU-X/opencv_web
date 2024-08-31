@@ -42,7 +42,7 @@
       </div>
       <div class="slider-container">
         <label>对比</label>
-        <input type="range" min="-50" max="50" v-model="contrast" @input="emitChanges" />
+        <input type="range" min="-10" max="10" v-model="contrast" @input="emitChanges" />
         <span>{{ contrast }}</span>
       </div>
       <h3>偏好</h3>

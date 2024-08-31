@@ -60,7 +60,15 @@ def adjust_contrast(img, contrast):
     fI = np.where(fI - 0.01 > 0, fI - 0.01, 0)
     max_val_org = np.max(fI)
     min_val_org = np.min(fI)
-    gamma = map_value(contrast)
+    if contrast > 0:
+        gamma = contrast / 10 + 1
+    elif contrast == 0:
+        gamma = 1.0
+    elif contrast == -10:
+        gamma = 0.0001
+    else:
+        gamma = (contrast + 10) / 10
+
     O = np.power(fI, gamma)
     
     max_val = np.max(O)

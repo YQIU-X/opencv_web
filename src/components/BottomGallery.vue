@@ -61,7 +61,7 @@ export default {
               config: image.config
             }))
 
-            if (this.Images.length > 0 && this.selectedImage !== null) {
+            if (this.Images.length > 0 && this.selectedImage == null) {
               this.selectImage(this.Images[0])
             }
           }
@@ -71,6 +71,7 @@ export default {
         })
     },
     selectImage (image) {
+      this.selectedImage = image
       this.$emit('select-image', image)
     },
     removeImage (imageId) {

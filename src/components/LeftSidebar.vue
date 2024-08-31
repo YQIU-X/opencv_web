@@ -6,7 +6,7 @@
         <ul v-if="expandedSection === 'files'">
           <li @click.stop="triggerFileInput">打开照片</li>
           <li @click.stop="triggerFolderInput">打开文件夹</li>
-          <li>另存为</li>
+          <li @click.stop="saveAs">另存为</li>
         </ul>
       </transition>
     </div>
@@ -20,6 +20,12 @@
 <script>
 export default {
   name: 'LeftSidebar',
+  props: {
+    currentImage: {
+      type: Object,
+      required: true
+    }
+  },
   data () {
     return {
       expandedSection: null
@@ -68,7 +74,30 @@ export default {
         .catch(error => {
           console.error('Error uploading images:', error)
         })
+    },
+    async saveAs () {
+      if (!this.currentImage) return
+      try {
+        const defaultFileName = `${this.currentImage.id}.jpeg`
+        const options = {
+          suggestedName: defaultFileName,
+          types: [{
+            description: 'JPEG Image',
+            accept: { 'image/jpeg': ['.jpeg', '.jpg'] }
+          }]
+        }
+        const fileHandle = await window.showSaveFilePicker(options)
+        const writableStream = await fileHandle.createWritable()
+        const base64Response = await fetch(this.currentImage.src)
+        const blob = await base64Response.blob()
+        await writableStream.write(blob)
+        await writableStream.close()
+        console.log('Image saved successfully.')
+      } catch (error) {
+        console.error('Error saving image:', error)
+      }
     }
+
   }
 }
 </script>

@@ -1,5 +1,5 @@
 
-# PORT: http://localhost:5000/upload_images
+# PORT: http://localhost:5000/adjust_image
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS

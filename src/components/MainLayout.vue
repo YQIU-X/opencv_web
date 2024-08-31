@@ -1,6 +1,6 @@
 <template>
   <div class="main-layout">
-    <LeftSidebar @upload_images="upload_images" />
+    <LeftSidebar :currentImage="currentImage ? currentImage : ''" @upload_images="upload_images" />
     <div class="content">
       <Workspace :Img="currentImage ? currentImage.src : ''" />
       <BottomGallery

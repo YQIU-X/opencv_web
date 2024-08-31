@@ -1,5 +1,5 @@
 
-# PORT: http://localhost:5003/load_images
+# PORT: http://localhost:5003/fetch_histogram
 
 from flask import Flask, request, jsonify
 import cv2
@@ -58,7 +58,7 @@ def drawHist(image):
 @app.route('/fetch_histogram', methods=['POST'])
 def upload_image():
     data = request.get_json()
-    image_id_value = data.get('id')
+    image_id_value = int(data.get('id'))
 
 
     if isinstance(image_id_value, str):

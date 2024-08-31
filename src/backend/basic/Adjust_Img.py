@@ -23,11 +23,13 @@ def adjust_image():
     hue = int(data.get('hue', 0))
     exposure = int(data.get('exposure', 0))
     contrast = int(data.get('contrast', 0))
+    sharpen = int(data.get('sharpen', 0))
+    saturation = int(data.get('saturation', 0))
     image_id = data.get('image_id')
     manager = ImageManager()
 
     img, _ = manager.get_last_image(image_id)
-    config = {"temperature": temprature, "hue": hue, "exposure": exposure, "contrast": contrast}
+    config = {"temperature": temprature, "hue": hue, "exposure": exposure, "contrast": contrast, "sharpen": sharpen, "saturation": saturation}
     manager.forward_image(image_id, img, config)  # 存图
 
     if img is None:

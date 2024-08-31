@@ -71,9 +71,40 @@ def adjust_contrast(img, contrast):
     # 将图像数据恢复到 [0, 255] 范围并转换为 uint8 类型
     return np.clip((O * 255), 0, 255).astype(np.uint8)
 
+def adjust_sharpen(img, alpha):
+    alpha += 1
+    def sharpen_image(img, alpha):
+        b = (1 - alpha)/8
+        kernel = np.array([[b, b, b],
+                        [b, alpha, b],
+                        [b, b, b]])
+        sharpened_img = cv2.filter2D(img, -1, kernel)
+        return sharpened_img
+
+    def update_sharpening(val):
+        alpha = val / 10.0 
+        sharpened_img = sharpen_image(img, alpha)
+        return sharpened_img
+    
+    return update_sharpening(alpha)
+
+def adjust_saturation(image, val):
+    val += 50
+    alpha = val / 50.0
+    hls_image = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
+    h, l, s = cv2.split(hls_image)
+    s = np.clip(s * alpha, 0, 255).astype(np.uint8)
+    adjusted_hls_image = cv2.merge([h, l, s])
+    adjusted_image = cv2.cvtColor(adjusted_hls_image, cv2.COLOR_HLS2BGR)
+    
+    return adjusted_image
+
 def Apply_Config(img, config):
     img = color_temperature(img, config["temperature"])
     img = adjust_hue(img, config["hue"])
     img = adjust_exposure(img, config["exposure"])
     img = adjust_contrast(img, config["contrast"])
+    img = adjust_sharpen(img, config["sharpen"])
+    img = adjust_saturation(img, config["saturation"])
+    
     return img

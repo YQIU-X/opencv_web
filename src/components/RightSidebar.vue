@@ -43,6 +43,16 @@
         <input type="range" min="-50" max="50" v-model="contrast" @input="emitChanges" />
         <span>{{ contrast }}</span>
       </div>
+      <div class="slider-container">
+        <label>锐化</label>
+        <input type="range" min="0" max="100" v-model="sharpen" @input="emitChanges" />
+        <span>{{ sharpen }}</span>
+      </div>
+      <div class="slider-container">
+        <label>饱和</label>
+        <input type="range" min="-50" max="50" v-model="saturation" @input="emitChanges" />
+        <span>{{ saturation }}</span>
+      </div>
     </div>
     <!-- 第二个页面的内容 -->
     <div v-if="currentPage === 2">
@@ -88,6 +98,14 @@ export default {
       type: Number,
       default: 0
     },
+    sharpen: {
+      type: Number,
+      default: 0
+    },
+    saturation: {
+      type: Number,
+      default: 0
+    },
     Image: {
       type: Object,
       default: null
@@ -116,7 +134,9 @@ export default {
         temprature: this.temprature,
         hue: this.hue,
         exposure: this.exposure,
-        contrast: this.contrast
+        contrast: this.contrast,
+        sharpen: this.sharpen,
+        saturation: this.saturation
       })
     },
     fetchHistogram (id) {

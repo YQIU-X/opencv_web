@@ -15,6 +15,8 @@
       :hue="currentImage ? currentImage.config.hue : 0"
       :exposure="currentImage ? currentImage.config.exposure : 0"
       :contrast="currentImage ? currentImage.config.contrast : 0"
+      :sharpen="currentImage ? currentImage.config.sharpen : 0"
+      :saturation="currentImage ? currentImage.config.saturation : 0"
       :Image="currentImage ? currentImage : null"
       @update-settings="updateSettings"
       @undo-action="undoAction"

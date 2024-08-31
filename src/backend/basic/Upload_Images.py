@@ -24,7 +24,7 @@ def upload_images():
     valid_extensions = {'jpg', 'jpeg', 'png', 'gif'}
 
     index = 0
-    config = {"temperature": 0, "hue": 0, "exposure": 0, "contrast": 0}
+    config = {"temperature": 0, "hue": 0, "exposure": 0, "contrast": 0, "sharpen": 0, "saturation": 0}
     first_image_base64 = None
     for file in files:
         file_extension = file.filename.split('.').pop().lower()

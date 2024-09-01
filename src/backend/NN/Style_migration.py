@@ -1,135 +1,145 @@
 import torch
 import torchvision
 from torch import nn
-from d2l import torch as d2l
+import cv2
+from PIL import Image
+import numpy as np
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import sys
+sys.path.append(".")
+from src.backend.data.ImageManager import ImageManager
+from src.backend.Utils import image_2_base64
 
-d2l.set_figsize()
-content_img = d2l.Image.open('stackedanimals.png')
-d2l.plt.imshow(content_img)
+app = Flask(__name__)
+CORS(app)
 
-style_img = d2l.Image.open('autumn-oak.jpg')
-d2l.plt.imshow(style_img)
+class StyleTransfer:
+    def __init__(self, content_img_cv, style_img_cv, image_shape=(300, 450), device=None):
+        self.device = device if device else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.image_shape = image_shape
 
-rgb_mean = torch.tensor([0.485, 0.456, 0.406])
-rgb_std = torch.tensor([0.229, 0.224, 0.225])
+        self.rgb_mean = torch.tensor([0.485, 0.456, 0.406]).to(self.device)
+        self.rgb_std = torch.tensor([0.229, 0.224, 0.225]).to(self.device)
 
-def preprocess(img, image_shape):
-    if img.mode == 'RGBA':
-        img = img.convert('RGB')  # 转换为RGB，去掉Alpha通道
-    transforms = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(image_shape),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean=rgb_mean, std=rgb_std)])
-    return transforms(img).unsqueeze(0)
+        self.content_img = self.cv2_to_pil(content_img_cv)
+        self.style_img = self.cv2_to_pil(style_img_cv)
 
-def postprocess(img_tensor):
-    inv_normalize = torchvision.transforms.Normalize(
-        mean= -rgb_mean / rgb_std,
-        std= 1/rgb_std)
-    to_PIL_image = torchvision.transforms.ToPILImage()
-    return to_PIL_image(inv_normalize(img_tensor[0].cpu()).clamp(0, 1))
+        self.pretrained_net = torchvision.models.vgg19(pretrained=True).features.to(self.device).eval()
 
-pretrained_net = torchvision.models.vgg19(pretrained=True)
+        self.style_layers, self.content_layers = [0, 5, 10, 19, 28], [25]
+        self.net = nn.Sequential(*[self.pretrained_net[i] for i in range(max(self.style_layers + self.content_layers) + 1)]).to(self.device)
+        
+        self.content_weight, self.style_weight, self.tv_weight = 1, 1e3, 10
 
-style_layers, content_layers = [0, 5, 10, 19, 28], [25]
+    def cv2_to_pil(self, img_cv):
+        """Convert a cv2 image (BGR format) to PIL image (RGB format)."""
+        img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
+        return Image.fromarray(img_rgb)
 
-net = nn.Sequential(*[pretrained_net.features[i] for i in
-                      range(max(content_layers + style_layers) + 1)])
+    def pil_to_cv2(self, img_pil):
+        """Convert a PIL image (RGB format) to cv2 image (BGR format)."""
+        img_rgb = np.array(img_pil)
+        return cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
 
-def extract_features(X, content_layers, style_layers):
-    contents = []
-    styles = []
-    for i in range(len(net)):
-        X = net[i](X)
-        if i in style_layers:
-            styles.append(X)
-        if i in content_layers:
-            contents.append(X)
-    return contents, styles
+    def preprocess(self, img):
+        if img.mode == 'RGBA':
+            img = img.convert('RGB')
+        transforms = torchvision.transforms.Compose([
+            torchvision.transforms.Resize(self.image_shape),
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize(mean=self.rgb_mean, std=self.rgb_std)])
+        return transforms(img).unsqueeze(0).to(self.device)
 
-def get_contents(image_shape, device):
-    content_X = preprocess(content_img, image_shape).to(device)
-    contents_Y, _ = extract_features(content_X, content_layers, style_layers)
-    return content_X, contents_Y
+    def postprocess(self, img_tensor):
+        inv_normalize = torchvision.transforms.Normalize(
+            mean=-self.rgb_mean / self.rgb_std,
+            std=1 / self.rgb_std)
+        to_PIL_image = torchvision.transforms.ToPILImage()
+        img_pil = to_PIL_image(inv_normalize(img_tensor[0].cpu()).clamp(0, 1))
+        return self.pil_to_cv2(img_pil)
 
-def get_styles(image_shape, device):
-    style_X = preprocess(style_img, image_shape).to(device)
-    _, styles_Y = extract_features(style_X, content_layers, style_layers)
-    return style_X, styles_Y
+    def extract_features(self, X):
+        contents = []
+        styles = []
+        for i in range(len(self.net)):
+            X = self.net[i](X)
+            if i in self.style_layers:
+                styles.append(X)
+            if i in self.content_layers:
+                contents.append(X)
+        return contents, styles
 
-def content_loss(Y_hat, Y):
-    # 我们从动态计算梯度的树中分离目标：
-    # 这是一个规定的值，而不是一个变量。
-    return torch.square(Y_hat - Y.detach()).mean()
+    def gram(self, X):
+        num_channels, n = X.shape[1], X.numel() // X.shape[1]
+        X = X.reshape((num_channels, n))
+        return torch.matmul(X, X.T) / (num_channels * n)
 
-def gram(X):
-    num_channels, n = X.shape[1], X.numel() // X.shape[1]
-    X = X.reshape((num_channels, n))
-    return torch.matmul(X, X.T) / (num_channels * n)
+    def content_loss(self, Y_hat, Y):
+        return torch.square(Y_hat - Y.detach()).mean()
 
-def style_loss(Y_hat, gram_Y):
-    return torch.square(gram(Y_hat) - gram_Y.detach()).mean()
+    def style_loss(self, Y_hat, gram_Y):
+        return torch.square(self.gram(Y_hat) - gram_Y.detach()).mean()
 
+    def tv_loss(self, Y_hat):
+        return 0.5 * (torch.abs(Y_hat[:, :, 1:, :] - Y_hat[:, :, :-1, :]).mean() +
+                      torch.abs(Y_hat[:, :, :, 1:] - Y_hat[:, :, :, :-1]).mean())
 
-def tv_loss(Y_hat):
-    return 0.5 * (torch.abs(Y_hat[:, :, 1:, :] - Y_hat[:, :, :-1, :]).mean() +
-                  torch.abs(Y_hat[:, :, :, 1:] - Y_hat[:, :, :, :-1]).mean())
+    def compute_loss(self, X, contents_Y_hat, styles_Y_hat, contents_Y, styles_Y_gram):
+        contents_l = [self.content_loss(Y_hat, Y) * self.content_weight for Y_hat, Y in zip(contents_Y_hat, contents_Y)]
+        styles_l = [self.style_loss(Y_hat, Y) * self.style_weight for Y_hat, Y in zip(styles_Y_hat, styles_Y_gram)]
+        tv_l = self.tv_loss(X) * self.tv_weight
+        l = sum(10 * styles_l + contents_l + [tv_l])
+        return contents_l, styles_l, tv_l, l
 
+    def get_contents(self):
+        content_X = self.preprocess(self.content_img)
+        contents_Y, _ = self.extract_features(content_X)
+        return content_X, contents_Y
 
-content_weight, style_weight, tv_weight = 1, 1e3, 10
+    def get_styles(self):
+        style_X = self.preprocess(self.style_img)
+        _, styles_Y = self.extract_features(style_X)
+        return style_X, styles_Y
 
-def compute_loss(X, contents_Y_hat, styles_Y_hat, contents_Y, styles_Y_gram):
-    # 分别计算内容损失、风格损失和全变分损失
-    contents_l = [content_loss(Y_hat, Y) * content_weight for Y_hat, Y in zip(
-        contents_Y_hat, contents_Y)]
-    styles_l = [style_loss(Y_hat, Y) * style_weight for Y_hat, Y in zip(
-        styles_Y_hat, styles_Y_gram)]
-    tv_l = tv_loss(X) * tv_weight
-    # 对所有损失求和
-    l = sum(10 * styles_l + contents_l + [tv_l])
-    return contents_l, styles_l, tv_l, l
+    def train(self, lr=0.3, num_epochs=500, lr_decay_epoch=50):
+        content_X, contents_Y = self.get_contents()
+        _, styles_Y = self.get_styles()
 
-class SynthesizedImage(nn.Module):
-    def __init__(self, img_shape, **kwargs):
-        super(SynthesizedImage, self).__init__(**kwargs)
-        self.weight = nn.Parameter(torch.rand(*img_shape))
+        gen_img = nn.Parameter(content_X.clone())
+        trainer = torch.optim.Adam([gen_img], lr=lr)
+        styles_Y_gram = [self.gram(Y) for Y in styles_Y]
 
-    def forward(self):
-        return self.weight
-    
+        scheduler = torch.optim.lr_scheduler.StepLR(trainer, lr_decay_epoch, 0.8)
 
-def get_inits(X, device, lr, styles_Y):
-    gen_img = SynthesizedImage(X.shape).to(device)
-    gen_img.weight.data.copy_(X.data)
-    trainer = torch.optim.Adam(gen_img.parameters(), lr=lr)
-    styles_Y_gram = [gram(Y) for Y in styles_Y]
-    return gen_img(), styles_Y_gram, trainer
+        for epoch in range(num_epochs):
+            trainer.zero_grad()
+            contents_Y_hat, styles_Y_hat = self.extract_features(gen_img)
+            _, _, _, l = self.compute_loss(
+                gen_img, contents_Y_hat, styles_Y_hat, contents_Y, styles_Y_gram)
+            l.backward()
+            trainer.step()
+            scheduler.step()
+        return self.postprocess(gen_img)
 
-def train(X, contents_Y, styles_Y, device, lr, num_epochs, lr_decay_epoch):
-    X, styles_Y_gram, trainer = get_inits(X, device, lr, styles_Y)
-    scheduler = torch.optim.lr_scheduler.StepLR(trainer, lr_decay_epoch, 0.8)
-    animator = d2l.Animator(xlabel='epoch', ylabel='loss',
-                            xlim=[10, num_epochs],
-                            legend=['content', 'style', 'TV'],
-                            ncols=2, figsize=(7, 2.5))
-    for epoch in range(num_epochs):
-        trainer.zero_grad()
-        contents_Y_hat, styles_Y_hat = extract_features(
-            X, content_layers, style_layers)
-        contents_l, styles_l, tv_l, l = compute_loss(
-            X, contents_Y_hat, styles_Y_hat, contents_Y, styles_Y_gram)
-        l.backward()
-        trainer.step()
-        scheduler.step()
-        if (epoch + 1) % 10 == 0:
-            animator.axes[1].imshow(postprocess(X))
-            animator.add(epoch + 1, [float(sum(contents_l)),
-                                     float(sum(styles_l)), float(tv_l)])
-    return X
+@app.route('/style_migration', methods=['POST'])
+def style_migration():
+    data = request.get_json()
+    content_img_id = int(data['content_id'])
+    style_img_id = int(data['style_id'])
+    manager = ImageManager()
+    content_img = manager.get_current_image(content_img_id)
+    style_img = manager.get_current_image(style_img_id)
+    style_transfer = StyleTransfer(content_img, style_img, image_shape=content_img.shape[:2])
+    output_image = style_transfer.train()
 
+    new_img_id = manager.get_next_image_id()
+    manager.add_image(new_img_id, output_image)
+    manager.save_images()
+    _, config = manager.get_last_image(new_img_id)
 
-device, image_shape = d2l.try_gpu(), (300, 450)
-net = net.to(device)
-content_X, contents_Y = get_contents(image_shape, device)
-_, styles_Y = get_styles(image_shape, device)
-output = train(content_X, contents_Y, styles_Y, device, 0.3, 500, 50)
+    img_base64 = image_2_base64(output_image)
+    return jsonify({"id": new_img_id, "src": img_base64, "config": config})
+
+if __name__ == '__main__':
+    app.run(debug=False, port=5008, threaded=True)

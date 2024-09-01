@@ -4,8 +4,6 @@ import os
 root = "./src/backend/"
 def run_scripts():
     process = []
-    # point_process = subprocess.Popen(["python", os.path.join(root, "/basic/PointCallBack.py")])
-    # draw_hist = subprocess.Popen(["python", os.path.join(root,"/basic/DrawHist.py")])
     load_images_process = subprocess.Popen(["python", os.path.join(root,"basic/Load_Images.py")])
     upload_images_process = subprocess.Popen(["python", os.path.join(root,"basic/Upload_Images.py")])
     adjust_img_process = subprocess.Popen(["python", os.path.join(root, "basic/Adjust_Img.py")])
@@ -13,6 +11,9 @@ def run_scripts():
     remove_img_process = subprocess.Popen(["python", os.path.join(root, "basic/Remove_Image.py")])
     next_img_process = subprocess.Popen(["python", os.path.join(root,"basic/Next_Image.py")])
     undo_action_process = subprocess.Popen(["python", os.path.join(root, "basic/Undo_Action.py")])
+
+    style_migration_process = subprocess.Popen(["python", os.path.join(root, "NN/Style_Migration.py")])
+
     process.append(load_images_process)
     process.append(upload_images_process)
     process.append(adjust_img_process)
@@ -20,6 +21,7 @@ def run_scripts():
     process.append(remove_img_process)
     process.append(next_img_process)
     process.append(undo_action_process)
+    process.append(style_migration_process)
 
 
     print("Starting scripts...")

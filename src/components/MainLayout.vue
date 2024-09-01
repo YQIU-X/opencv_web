@@ -1,13 +1,21 @@
 <template>
   <div class="main-layout">
-    <LeftSidebar :currentImage="currentImage ? currentImage : ''" @upload_images="upload_images" />
+    <LeftSidebar
+      :currentImage="currentImage ? currentImage : {}"
+      @upload_images="upload_images"
+      @set-operation="setOperation"
+    />
     <div class="content">
-      <Workspace :Img="currentImage ? currentImage.src : ''" />
+      <Workspace :Img="currentImage ? currentImage.src : ''"/>
       <BottomGallery
         ref="bottomGallery"
-        :selectedImage="currentImage ? currentImage : ''"
+        :selectedImage="currentImage ? currentImage : {}"
+        :tempImage1="tempImage1 ? tempImage1 : {}"
+        :tempImage2="tempImage2 ? tempImage2 : {}"
+        :currentOperation="currentOperation"
         @select-image="select_image"
         @remove-image="removeImage"
+        :class="{ 'expanded-gallery': isGalleryExpanded }"
       />
     </div>
     <RightSidebar
@@ -41,10 +49,75 @@ export default {
   },
   data () {
     return {
-      currentImage: null // {id, src 64, config}
+      currentImage: null, // {id, src 64, config}
+      isGalleryExpanded: false, // 控制BottomGallery的高度
+      tempImage1: null, // 存储第一张图片
+      tempImage2: null, // 存储第二张图片
+      currentOperation: null // 记录当前操作类型
     }
   },
   methods: {
+    setOperation (operation) {
+      this.currentOperation = operation
+      this.isGalleryExpanded = true
+    },
+    selectTempImage (image) {
+      console.log('selectTempImage')
+      console.log(this.currentOperation)
+      if (!this.tempImage1) {
+        this.tempImage1 = image
+      } else if (!this.tempImage2) {
+        this.tempImage2 = image
+        if (this.currentOperation === 'style-transfer') {
+          this.applyStyleTransfer()
+        }
+        // this.currentOperation = null // 重置操作类型
+      } else {
+        this.tempImage1 = image
+        this.tempImage2 = null
+      }
+    },
+    async applyStyleTransfer () {
+      if (this.tempImage1 && this.tempImage2) {
+        // 将 tempImage1 和 tempImage2 传递到后端进行样式迁移
+        fetch('http://localhost:5008/style_migration', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content_id: this.tempImage1.id,
+            style_id: this.tempImage2.id
+          })
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok')
+            }
+            return response.json()
+          })
+          .then(data => {
+            this.currentImage = {
+              id: data.id,
+              src: `data:image/jpeg;base64,${data.src}`,
+              config: data.config
+            }
+            this.select_image(this.currentImage)
+            this.$refs.bottomGallery.updateImages()
+            this.clean()
+          })
+          .catch(error => {
+            console.error('Error updating image:', error)
+          })
+        // this.clean()
+      }
+    },
+    applyImageSegmentation () {
+      if (this.tempImage1) {
+        // 将 tempImage1 传递到后端进行图片分割
+        this.clean()
+      }
+    },
     upload_images (data) { // get the current image
       if (data.first_image !== null && data.first_image !== undefined) {
         this.currentImage = {
@@ -63,6 +136,10 @@ export default {
     },
     select_image (image) {
       this.currentImage = image
+      if (this.currentOperation) {
+        console.log('this.currentOperation: ', this.currentOperation)
+        this.selectTempImage(this.currentImage)
+      }
     },
     updateSettings (settings) {
       if (!this.currentImage) return
@@ -96,7 +173,17 @@ export default {
         this.currentImage = null
       }
     },
+    clean () {
+      this.tempImage1 = null
+      this.tempImage2 = null
+      this.currentOperation = null
+      this.isGalleryExpanded = false
+    },
     undoAction () {
+      this.tempImage1 = null
+      this.tempImage2 = null
+      this.currentOperation = null
+      this.isGalleryExpanded = false
       if (this.currentImage && this.currentImage.id) {
         fetch('http://localhost:5004/undo_action', {
           method: 'POST',
@@ -142,10 +229,22 @@ export default {
             console.error('Error in nextImage:', error)
           })
       }
+    },
+    handleClickOutside (event) {
+      const bottomGallery = this.$refs.bottomGallery.$el
+      const leftSidebar = this.$refs.leftSidebar ? this.$refs.leftSidebar.$el : null
+
+      if (this.isGalleryExpanded && !bottomGallery.contains(event.target) && (!leftSidebar || !leftSidebar.contains(event.target))) {
+        this.clean()
+      }
     }
   },
   mounted () {
     this.$refs.bottomGallery.updateImages()
+    document.addEventListener('click', this.handleClickOutside)
+  },
+  beforeDestroy () {
+    document.removeEventListener('click', this.handleClickOutside)
   }
 }
 </script>
@@ -185,8 +284,11 @@ export default {
 }
 
 .bottom-gallery {
-  height: 120px; /* 固定高度 */
-  background-color: #1c1c1c;
-  overflow-x: auto;
+  height: 120px; /* 默认高度 */
+  transition: height 0.3s ease; /* 过渡效果 */
+}
+
+.expanded-gallery {
+  height: 600px; /* 伸长后的高度 */
 }
 </style>

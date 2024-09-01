@@ -10,6 +10,15 @@
         </ul>
       </transition>
     </div>
+    <div @click="toggleSection('operations')" class="sidebar-section">
+      <h2>操作</h2>
+      <transition name="slide-fade">
+        <ul v-if="expandedSection === 'operations'">
+          <li @click.stop="setOperation('style-transfer')">样式迁移</li>
+          <li @click.stop="setOperation('image-segmentation')">图片分割</li>
+        </ul>
+      </transition>
+    </div>
     <!-- 隐藏的文件输入框 -->
     <input type="file" ref="fileInput" @change="handleFileUpload" multiple style="display: none;" />
     <!-- 用于选择文件夹的文件输入框 -->
@@ -28,10 +37,21 @@ export default {
   },
   data () {
     return {
-      expandedSection: null
+      expandedSection: null,
+      operation: null // 记录当前操作类型
     }
   },
   methods: {
+    setOperation (operation) {
+      this.operation = operation
+      this.$emit('set-operation', operation)
+    },
+    applyStyleTransfer () {
+      this.$emit('apply-style-transfer')
+    },
+    applyImageSegmentation () {
+      this.$emit('apply-image-segmentation')
+    },
     toggleSection (section) {
       this.expandedSection = this.expandedSection === section ? null : section
     },

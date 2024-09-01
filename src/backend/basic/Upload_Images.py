@@ -7,7 +7,6 @@ from flask_cors import CORS
 import cv2
 import sys
 import numpy as np
-from collections import deque
 sys.path.append(".")
 from src.backend.Utils import image_2_base64
 from src.backend.data.ImageManager import ImageManager

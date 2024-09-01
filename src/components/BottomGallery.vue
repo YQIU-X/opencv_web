@@ -1,14 +1,22 @@
 <template>
-  <div class="bottom-gallery" @click="hideContextMenu">
-    <img
+  <div class="bottom-gallery" @click.stop="hideContextMenu">
+    <div
       v-for="image in Images"
-      :src="image.src"
       :key="image.id"
-      :class="{'selected': image.id === selectedImage.id}"
-      class="thumbnail"
+      class="thumbnail-wrapper"
       @click="selectImage(image)"
       @contextmenu.prevent="showContextMenu($event, image)"
-    />
+    >
+      <img
+        :src="image.src"
+        :class="{'selected': image.id === selectedImage.id}"
+        class="thumbnail"
+      />
+    <div v-if="currentOperation === 'style-transfer' && (tempImage1 && image.id === tempImage1.id || tempImage2 && image.id === tempImage2.id)"
+        class="overlay">
+      <span>{{ tempImage1 && image.id === tempImage1.id ? 'content image' : 'style image' }}</span>
+    </div>
+    </div>
     <div v-if="contextMenuVisible" :style="{ top: `${contextMenuY}px`, left: `${contextMenuX}px` }" class="context-menu">
       <ul>
         <li @click="removeImage(contextMenuImage.id)">移除</li>
@@ -21,7 +29,27 @@
 export default {
   name: 'BottomGallery',
   props: {
-    selectedImage: { // equivalent to currentImage in MainLayout
+    selectedImage: {
+      type: Object,
+      default: () => ({
+        id: '',
+        src: '',
+        config: {}
+      })
+    },
+    currentOperation: { // 从 MainLayout 传递的操作
+      type: String,
+      default: ''
+    },
+    tempImage1: {
+      type: Object,
+      default: () => ({
+        id: '',
+        src: '',
+        config: {}
+      })
+    },
+    tempImage2: {
       type: Object,
       default: () => ({
         id: '',
@@ -32,7 +60,7 @@ export default {
   },
   data () {
     return {
-      Images: [], // [{id, src, config}]
+      Images: [],
       contextMenuVisible: false,
       contextMenuX: 0,
       contextMenuY: 0,
@@ -48,9 +76,6 @@ export default {
         }
       })
         .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok')
-          }
           return response.json()
         })
         .then(data => {
@@ -67,7 +92,7 @@ export default {
           }
         })
         .catch(error => {
-          console.error('Error fetching and updating images:', error)
+          console.error('erro update:', error)
         })
     },
     selectImage (image) {
@@ -88,7 +113,7 @@ export default {
           this.updateImages()
         })
         .catch(error => {
-          console.error('erro remove img:', error)
+          console.error('移除图片时出错:', error)
         })
     },
     showContextMenu (event, image) {
@@ -106,21 +131,56 @@ export default {
 
 <style scoped>
 .bottom-gallery {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-gap: 10px;
   padding: 10px;
   background-color: #1c1c1c;
   overflow-x: auto;
   justify-content: center;
+  height: 120px;
+  transition: height 0.3s ease;
+}
+
+.expanded-gallery {
+  height: 600px;
+}
+
+.thumbnail-wrapper {
+  position: relative;
+  width: 100px; /* 确保缩略图容器的宽度与图片一致 */
+  height: 100px; /* 确保缩略图容器的高度与图片一致 */
 }
 
 .thumbnail {
-  width: 95px; /* Adjusted to account for the inward border */
-  height: 95px; /* Adjusted to account for the inward border */
+  width: 100%; /* 确保图片占满容器 */
+  height: 100%; /* 确保图片占满容器 */
   object-fit: cover;
   transition: border 0.3s ease;
-  box-sizing: border-box; /* Ensures the border is added inside */
+  box-sizing: border-box;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: center; /* 使蒙版内容居中 */
+  align-items: center;
+  pointer-events: none; /* 确保蒙版不会干扰点击事件 */
+}
+
+.overlay span {
+  position: relative;
+  font-size: 14px;
+  font-weight: bold;
+  color: black;
+  text-transform: uppercase;
+  white-space: normal; /* 允许换行 */
+  padding: 0 10px; /* 适当的内边距以防文字贴边 */
 }
 
 .thumbnail.selected {

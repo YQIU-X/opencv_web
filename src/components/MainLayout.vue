@@ -3,7 +3,6 @@
     <LeftSidebar
       :currentImage="currentImage ? currentImage : {}"
       @upload_images="upload_images"
-      @set-operation="setOperation"
     />
     <div class="content">
       <Workspace :Img="currentImage ? currentImage.src : ''"/>
@@ -25,10 +24,12 @@
       :contrast="currentImage ? currentImage.config.contrast : 0"
       :sharpen="currentImage ? currentImage.config.sharpen : 0"
       :saturation="currentImage ? currentImage.config.saturation : 0"
-      :Image="currentImage ? currentImage : null"
+      :Image="currentImage ? currentImage : {}"
       @update-settings="updateSettings"
       @undo-action="undoAction"
       @next-image="nextImage"
+      @set-operation="setOperation"
+      @confirm-changes="handleConfirmChanges"
     />
   </div>
 </template>
@@ -60,24 +61,22 @@ export default {
     setOperation (operation) {
       this.currentOperation = operation
       this.isGalleryExpanded = true
+      this.tempImage1 = null
+      this.tempImage2 = null
     },
     selectTempImage (image) {
-      console.log('selectTempImage')
-      console.log(this.currentOperation)
+      if (this.currentOperation === null) return
+
       if (!this.tempImage1) {
         this.tempImage1 = image
       } else if (!this.tempImage2) {
         this.tempImage2 = image
-        if (this.currentOperation === 'style-transfer') {
-          this.applyStyleTransfer()
-        }
-        // this.currentOperation = null // 重置操作类型
       } else {
         this.tempImage1 = image
         this.tempImage2 = null
       }
     },
-    async applyStyleTransfer () {
+    applyStyleTransfer () {
       if (this.tempImage1 && this.tempImage2) {
         // 将 tempImage1 和 tempImage2 传递到后端进行样式迁移
         fetch('http://localhost:5008/style_migration', {
@@ -109,13 +108,39 @@ export default {
           .catch(error => {
             console.error('Error updating image:', error)
           })
-        // this.clean()
       }
     },
     applyImageSegmentation () {
       if (this.tempImage1) {
-        // 将 tempImage1 传递到后端进行图片分割
-        this.clean()
+        fetch('http://localhost:5009/seg_human', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            seg_img_id: this.tempImage1.id,
+            background_img_id: this.tempImage2 ? this.tempImage2.id : null
+          })
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok')
+            }
+            return response.json()
+          })
+          .then(data => {
+            this.currentImage = {
+              id: data.id,
+              src: `data:image/jpeg;base64,${data.src}`,
+              config: data.config
+            }
+            this.select_image(this.currentImage)
+            this.$refs.bottomGallery.updateImages()
+            this.clean()
+          })
+          .catch(error => {
+            console.error('Error updating image:', error)
+          })
       }
     },
     upload_images (data) { // get the current image
@@ -180,10 +205,7 @@ export default {
       this.isGalleryExpanded = false
     },
     undoAction () {
-      this.tempImage1 = null
-      this.tempImage2 = null
-      this.currentOperation = null
-      this.isGalleryExpanded = false
+      this.clean()
       if (this.currentImage && this.currentImage.id) {
         fetch('http://localhost:5004/undo_action', {
           method: 'POST',
@@ -230,11 +252,25 @@ export default {
           })
       }
     },
+    handleConfirmChanges () {
+      if (this.currentOperation === 'image-segmentation' && this.tempImage1) {
+        this.applyImageSegmentation()
+        this.tempImage1 = null
+        this.tempImage2 = null
+      }
+      if (this.currentOperation === 'style-transfer' && this.tempImage1 && this.tempImage2) {
+        this.applyStyleTransfer()
+        this.tempImage1 = null
+        this.tempImage2 = null
+      }
+    },
     handleClickOutside (event) {
       const bottomGallery = this.$refs.bottomGallery.$el
-      const leftSidebar = this.$refs.leftSidebar ? this.$refs.leftSidebar.$el : null
-
-      if (this.isGalleryExpanded && !bottomGallery.contains(event.target) && (!leftSidebar || !leftSidebar.contains(event.target))) {
+      const RightSidebar = this.$refs.RightSidebar ? this.$refs.RightSidebar.$el : null
+      if (this.isGalleryExpanded &&
+      !bottomGallery.contains(event.target) &&
+       (!RightSidebar || !RightSidebar.contains(event.target)) &&
+       this.operation === null) {
         this.clean()
       }
     }

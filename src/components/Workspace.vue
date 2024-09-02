@@ -16,8 +16,8 @@ export default {
   },
   data () {
     return {
-      clickTimeout: null, // 用于检测双击定时器
-      laskClickTime: 0 // 上一次点击时间
+      clickTimeout: null,
+      lastClickTime: 0 // 上一次点击时间
     }
   },
   methods: {
@@ -30,6 +30,7 @@ export default {
       if (timeSinceLastClick < 300) {
         clearTimeout(this.clickTimeout) // 如果在300ms内再次点击，取消之前的单击事件
         this.lastClickTime = 0 // 重置点击时间
+        // 可以在这里处理双击事件
       } else {
         this.lastClickTime = currentTime
 
@@ -38,31 +39,31 @@ export default {
           this.sendCoordinates(event)
         }, 300) // 延迟300ms后判断为单击事件
       }
+    },
+    sendCoordinates (event) {
+      const img = this.$refs.image
+      const rect = img.getBoundingClientRect()
+
+      // 计算鼠标点击的坐标相对于图片的位置
+      const x = event.clientX - rect.left
+      const y = event.clientY - rect.top
+
+      // 发送坐标到后端
+      fetch('http://localhost:5001/point_callback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ x, y })
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Coordinates sent successfully:', data)
+        })
+        .catch(error => {
+          console.error('Error sending coordinates:', error)
+        })
     }
-    // sendCoordinates (event) {
-    //   const img = this.$refs.image
-    //   const rect = img.getBoundingClientRect()
-
-    //   // 计算鼠标点击的坐标相对于图片的位置
-    //   const x = event.clientX - rect.left
-    //   const y = event.clientY - rect.top
-
-    //   // 发送坐标到后端
-    //   fetch('http://localhost:5001/click_coordinates', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify({ x, y })
-    //   })
-    //     .then(response => response.json())
-    //     .then(data => {
-    //       console.log('Coordinates sent successfully:', data)
-    //     })
-    //     .catch(error => {
-    //       console.error('Error sending coordinates:', error)
-    //     })
-    // }
   }
 }
 </script>

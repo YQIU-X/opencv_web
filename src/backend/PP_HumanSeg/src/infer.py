@@ -17,8 +17,9 @@ from paddleseg.core.infer import reverse_transform
 from paddleseg.cvlibs import manager
 from paddleseg.utils import TimeAverager
 
-from optic_flow_process import optic_flow_process
-
+import sys
+sys.path.append('.')
+from src.backend.PP_HumanSeg.src.optic_flow_process import optic_flow_process
 
 class DeployConfig:
     def __init__(self, path, vertical_screen):

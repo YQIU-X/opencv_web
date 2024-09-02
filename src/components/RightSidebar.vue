@@ -12,7 +12,7 @@
         <img src="../assets/dataIcon.png" alt="按钮1" class="button-icon1" />
       </button>
       <button @click="currentPage = 2" class="connected-button">
-        <img src="path/to/image2.png" alt="按钮2" class="button-icon" />
+        <img src="../assets/crop.png" alt="按钮2" class="button-icon4" />
       </button>
       <button @click="currentPage = 3" class="connected-button">
         <img src="path/to/image2.png" alt="按钮3" class="button-icon" />
@@ -70,12 +70,25 @@
     <!-- 第四个页面的内容 -->
     <div v-if="currentPage === 4">
       <!-- 添加十个按钮 -->
+    <div v-if="currentPage === 4">
+      <!-- 手动添加十个按钮 -->
       <div class="button-container">
-        <button v-for="n in 10" :key="n" class="extra-button" @click="n === 10 ? processImage() : null">按钮 {{ n }}</button>
+        <button class="extra-button" @click.stop="setOperation('style-transfer')">样式迁移</button>
+        <button class="extra-button" @click.stop="setOperation('image-segmentation')">人像分割</button>
+        <button class="extra-button">按钮 3</button>
+        <button class="extra-button">按钮 4</button>
+        <button class="extra-button">按钮 5</button>
+        <button class="extra-button">按钮 6</button>
+        <button class="extra-button">按钮 7</button>
+        <button class="extra-button">按钮 8</button>
+        <button class="extra-button">按钮 9</button>
+        <button class="extra-button">按钮 10</button>
       </div>
+    </div>
     </div>
     <div class="bottom-button-row">
       <button @click="$emit('undo-action')" class="bottom-button">撤回</button>
+      <button @click="confirmChanges" class="bottom-button">确定</button>
       <button @click="$emit('next-image')" class="bottom-button">下一张</button>
     </div>
   </div>
@@ -132,6 +145,13 @@ export default {
     }
   },
   methods: {
+    confirmChanges () {
+      this.$emit('confirm-changes')
+    },
+    setOperation (operation) {
+      this.operation = operation
+      this.$emit('set-operation', operation)
+    },
     emitChanges () {
       this.$emit('update-settings', {
         temprature: this.temprature,

@@ -16,6 +16,11 @@
         class="overlay">
       <span>{{ tempImage1 && image.id === tempImage1.id ? 'content image' : 'style image' }}</span>
     </div>
+     <div v-if="currentOperation === 'image-segmentation' && (tempImage1 && image.id === tempImage1.id || tempImage2 && image.id === tempImage2.id)"
+          class="overlay">
+        <span>{{ tempImage1 && image.id === tempImage1.id ? 'human image' : 'backg image' }}</span>
+      </div>
+
     </div>
     <div v-if="contextMenuVisible" :style="{ top: `${contextMenuY}px`, left: `${contextMenuX}px` }" class="context-menu">
       <ul>

@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sys
 sys.path.append(".")
-from src.backend.PP_HumanSeg.src.seghuman import seg_image, get_bg_img
+from src.backend.right_side.S4.PP_HumanSeg.src.seghuman import seg_image, get_bg_img
 from src.backend.data.ImageManager import ImageManager
 from src.backend.Utils import image_2_base64
 

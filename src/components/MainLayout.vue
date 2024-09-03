@@ -24,7 +24,8 @@
       ref="RightSidebar"
       :Image="currentImage ? currentImage : {}"
       @set-operation="setOperation"
-      @apply-freeCrop="applyFreeCropOperation"
+      @apply-Crop="applyCropOperation"
+      @cancel-Crop="cancleCrop"
       @update-settings="updateSettings"
       @undo-action="undoAction"
       @next-image="nextImage"
@@ -64,32 +65,63 @@ export default {
       this.tempImage1 = null
       this.tempImage2 = null
     },
-    handleCoordinate (x, y) {
+    cancleCrop () {
+      if (this.currentImage && this.currentOperation) {
+        fetch('http://localhost:5010/cancel_crop', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id: this.currentImage.id,
+            currentOperation: this.currentOperation
+          })
+        })
+          .then(response => response.json())
+          .then(data => {
+            this.currentImage = {
+              id: data.id,
+              src: `data:image/jpeg;base64,${data.src}`,
+              config: data.config
+            }
+            this.select_image(this.currentImage)
+          })
+          .catch(error => {
+            console.error('Error cancelling crop:', error)
+          })
+      }
+    },
+    handleCoordinate (x, y, scaleX, scaleY) {
       if (this.currentOperation === 'freeCrop' && this.currentImage) {
         fetch('http://localhost:5001/free_crop', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ x, y })
+          body: JSON.stringify({
+            point: { x: x, y: y },
+            imageId: this.currentImage.id,
+            currentOperation: this.currentOperation,
+            scale: { scaleX: scaleX, scaleY: scaleY }
+          })
         })
           .then(response => response.json())
           .then(data => {
-            // this.currentImage = {
-            //   id: data.id,
-            //   src: `data:image/jpeg;base64,${data.src}`,
-            //   config: data.config
-            // }
-            // this.select_image(this.currentImage)
+            this.currentImage = {
+              id: data.id,
+              src: `data:image/jpeg;base64,${data.src}`,
+              config: data.config
+            }
+            this.select_image(this.currentImage)
           })
           .catch(error => {
             console.error('Error sending coordinates:', error)
           })
       }
     },
-    applyFreeCropOperation () {
+    applyCropOperation () {
       if (this.currentOperation === 'freeCrop' && this.currentImage) {
-        fetch('http://localhost:5066/apply_freeCrop', {
+        fetch('http://localhost:5011/apply_Crop', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -105,7 +137,7 @@ export default {
               config: data.config
             }
             this.select_image(this.currentImage)
-            this.currentOperation = null
+            this.$refs.bottomGallery.updateImages()
           })
           .catch(error => {
             console.error('Error applying freeCrop:', error)
@@ -204,7 +236,6 @@ export default {
     },
     select_image (image) {
       this.currentImage = image
-      console.log(image.config)
       this.$refs.RightSidebar.updateConfig()
       if (this.currentOperation) {
         console.log('this.currentOperation: ', this.currentOperation)

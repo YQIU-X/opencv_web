@@ -4,7 +4,7 @@ import numpy as np
 from paddleseg.utils import get_sys_env, logger
 import sys
 sys.path.append('.')
-from src.backend.PP_HumanSeg.src.infer import Predictor
+from src.backend.right_side.S4.PP_HumanSeg.src.infer import Predictor
 
 class Args:
     def __init__(self):

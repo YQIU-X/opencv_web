@@ -252,13 +252,13 @@ export default {
     setFreeCropOperation () {
       this.setOperation('freeCrop')
     },
+    // 应用
     applyFreeCrop () {
-      this.expandedSection = ''
-      this.$emit('apply-freeCrop')
+      this.$emit('apply-Crop')
     },
-
+    // 取消
     cancelFreeCrop () {
-      // 处理取消操作
+      this.$emit('cancel-Crop')
     },
     // selectZone (zone) {
     //   this.selectedZone = zone

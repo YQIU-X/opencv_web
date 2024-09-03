@@ -1,6 +1,6 @@
 <template>
   <div class="workspace"
-       @mousedown="sendCoordinates">
+       @mousedown="handleMouseDown">
     <img :src="Img" alt="当前图片" ref="image" draggable="false" />
   </div>
 </template>
@@ -30,8 +30,16 @@ export default {
       const x = event.clientX - rect.left
       const y = event.clientY - rect.top
 
-      console.log('coordinate-clicked', x, y)
-      this.$emit('coordinate-clicked', { x, y })
+      // 计算缩放比例
+      const naturalWidth = img.naturalWidth
+      const naturalHeight = img.naturalHeight
+      const displayedWidth = rect.width
+      const displayedHeight = rect.height
+      const scaleX = naturalWidth / displayedWidth
+      const scaleY = naturalHeight / displayedHeight
+
+      console.log('coordinate-clicked', x, y, scaleX, scaleY)
+      this.$emit('coordinate-clicked', x, y, scaleX, scaleY)
     },
     handleMouseDown (event) {
       if (event.button !== 0) return // 仅处理左键点击
@@ -42,40 +50,16 @@ export default {
       if (timeSinceLastClick < 300) {
         clearTimeout(this.clickTimeout) // 如果在300ms内再次点击，取消之前的单击事件
         this.lastClickTime = 0 // 重置点击时间
-        // 可以在这里处理双击事件
+        this.sendCoordinates(event) // 触发双击事件时调用 sendCoordinates 方法
       } else {
         this.lastClickTime = currentTime
-
+        // 单击时不执行任何操作
         this.clickTimeout = setTimeout(() => {
-          console.log('Single click detected')
-          this.sendCoordinates(event)
+          // 300ms后认为没有双击，不执行任何操作
+          this.lastClickTime = 0 // 重置点击时间
         }, 300) // 延迟300ms后判断为单击事件
       }
     }
-    // sendCoordinates (event) {
-    //   const img = this.$refs.image
-    //   const rect = img.getBoundingClientRect()
-
-    //   // 计算鼠标点击的坐标相对于图片的位置
-    //   const x = event.clientX - rect.left
-    //   const y = event.clientY - rect.top
-
-    //   // 发送坐标到后端
-    //   fetch('http://localhost:5001/point_callback', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify({ x, y })
-    //   })
-    //     .then(response => response.json())
-    //     .then(data => {
-    //       console.log('Coordinates sent successfully:', data)
-    //     })
-    //     .catch(error => {
-    //       console.error('Error sending coordinates:', error)
-    //     })
-    // }
   }
 }
 </script>

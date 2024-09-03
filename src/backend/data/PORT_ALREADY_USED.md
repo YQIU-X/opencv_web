@@ -17,3 +17,7 @@
 # PORT: http://localhost:5008/style_migration
 
 # PORT: http://localhost:5009/seg_human
+
+# PORT: http://localhost:5010/cancel_crop
+
+# PORT: http://localhost:5011/apply_Crop

@@ -4,17 +4,24 @@ import os
 root = "./src/backend/"
 def run_scripts():
     process = []
-    load_images_process = subprocess.Popen(["python", os.path.join(root,"basic/Load_Images.py")])
-    upload_images_process = subprocess.Popen(["python", os.path.join(root,"basic/Upload_Images.py")])
-    adjust_img_process = subprocess.Popen(["python", os.path.join(root, "basic/Adjust_Img.py")])
-    draw_hist_process = subprocess.Popen(["python", os.path.join(root,"basic/Draw_Hist.py")])
-    remove_img_process = subprocess.Popen(["python", os.path.join(root, "basic/Remove_Image.py")])
-    next_img_process = subprocess.Popen(["python", os.path.join(root,"basic/Next_Image.py")])
-    undo_action_process = subprocess.Popen(["python", os.path.join(root, "basic/Undo_Action.py")])
-    point_callback_process = subprocess.Popen(["python", os.path.join(root, "basic/Point_Callback.py")])
+    load_images_process = subprocess.Popen(["python", os.path.join(root,"left_side/Load_Images.py")])
+    upload_images_process = subprocess.Popen(["python", os.path.join(root,"left_side/Upload_Images.py")])
 
-    style_migration_process = subprocess.Popen(["python", os.path.join(root, "NN/Style_Migration.py")])
-    seg_human_process = subprocess.Popen(["python", os.path.join(root, "PP_HumanSeg/Seg_Human.py")])
+    adjust_img_process = subprocess.Popen(["python", os.path.join(root, "right_side/S1/Adjust_Img.py")])
+    draw_hist_process = subprocess.Popen(["python", os.path.join(root,"right_side/S1/Draw_Hist.py")])
+
+    free_crop_process = subprocess.Popen(["python", os.path.join(root, "right_side/S2/Free_Crop.py")])
+    cancel_crop_process = subprocess.Popen(["python", os.path.join(root,"right_side/S2/Cancel_Crop.py")])
+    apply_crop = subprocess.Popen(["python", os.path.join(root, "right_side/S2/Apply_Crop.py")])
+
+    style_migration_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Style_Migration.py")])
+    seg_human_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Seg_Human.py")])
+
+    next_img_process = subprocess.Popen(["python", os.path.join(root,"right_side/Next_Image.py")])
+    undo_action_process = subprocess.Popen(["python", os.path.join(root, "right_side/Undo_Action.py")])
+
+    remove_img_process = subprocess.Popen(["python", os.path.join(root, "bottom_gallery/Remove_Image.py")])
+
 
     process.append(load_images_process)
     process.append(upload_images_process)
@@ -25,7 +32,9 @@ def run_scripts():
     process.append(undo_action_process)
     process.append(style_migration_process)
     process.append(seg_human_process)
-    # process.append(point_callback_process)
+    process.append(free_crop_process)
+    process.append(cancel_crop_process)
+    process.append(apply_crop)
 
     print("Starting scripts...")
     try:

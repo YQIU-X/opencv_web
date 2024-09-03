@@ -9,7 +9,7 @@ import sys
 sys.path.append(".")
 from src.backend.Utils import image_2_base64
 from src.backend.data.ImageManager import ImageManager
-from src.backend.Apply_Config import Apply_Config
+from src.backend.right_side.S1.Apply_Config import Apply_Config
 
 app = Flask(__name__)
 CORS(app)

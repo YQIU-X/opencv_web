@@ -19,7 +19,7 @@ from paddleseg.utils import TimeAverager
 
 import sys
 sys.path.append('.')
-from src.backend.PP_HumanSeg.src.optic_flow_process import optic_flow_process
+from src.backend.right_side.S4.PP_HumanSeg.src.optic_flow_process import optic_flow_process
 
 class DeployConfig:
     def __init__(self, path, vertical_screen):

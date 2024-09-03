@@ -1,6 +1,6 @@
 <template>
   <div class="workspace"
-       @mousedown="handleMouseDown">
+       @mousedown="sendCoordinates">
     <img :src="Img" alt="当前图片" ref="image" draggable="false" />
   </div>
 </template>
@@ -21,6 +21,18 @@ export default {
     }
   },
   methods: {
+    sendCoordinates (event) {
+      event.stopPropagation()
+      const img = this.$refs.image
+      const rect = img.getBoundingClientRect()
+
+      // 计算鼠标点击的坐标相对于图片的位置
+      const x = event.clientX - rect.left
+      const y = event.clientY - rect.top
+
+      console.log('coordinate-clicked', x, y)
+      this.$emit('coordinate-clicked', { x, y })
+    },
     handleMouseDown (event) {
       if (event.button !== 0) return // 仅处理左键点击
 
@@ -39,31 +51,31 @@ export default {
           this.sendCoordinates(event)
         }, 300) // 延迟300ms后判断为单击事件
       }
-    },
-    sendCoordinates (event) {
-      const img = this.$refs.image
-      const rect = img.getBoundingClientRect()
-
-      // 计算鼠标点击的坐标相对于图片的位置
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
-
-      // 发送坐标到后端
-      fetch('http://localhost:5001/point_callback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ x, y })
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Coordinates sent successfully:', data)
-        })
-        .catch(error => {
-          console.error('Error sending coordinates:', error)
-        })
     }
+    // sendCoordinates (event) {
+    //   const img = this.$refs.image
+    //   const rect = img.getBoundingClientRect()
+
+    //   // 计算鼠标点击的坐标相对于图片的位置
+    //   const x = event.clientX - rect.left
+    //   const y = event.clientY - rect.top
+
+    //   // 发送坐标到后端
+    //   fetch('http://localhost:5001/point_callback', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify({ x, y })
+    //   })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //       console.log('Coordinates sent successfully:', data)
+    //     })
+    //     .catch(error => {
+    //       console.error('Error sending coordinates:', error)
+    //     })
+    // }
   }
 }
 </script>

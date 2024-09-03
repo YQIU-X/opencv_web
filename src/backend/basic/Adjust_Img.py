@@ -43,7 +43,7 @@ def adjust_image():
     encoded_image = image_2_base64(img)
 
     manager.save_images()  # 存文件
-    return jsonify({'image': encoded_image, 'config' : config})
+    return jsonify({"id": image_id, "src": encoded_image, "config": config})
 
 if __name__ == '__main__':
     app.run(debug=False, port=5000, threaded=True)

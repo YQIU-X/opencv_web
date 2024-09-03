@@ -9,13 +9,13 @@
     <!-- 按钮行 -->
     <div class="button-row">
       <button @click="currentPage = 1" class="connected-button">
-        <img src="../assets/dataIcon.png" alt="按钮1" class="button-icon1" />
+        <img src="../assets/dataIcon.png" alt="按钮1" class="button-icon4" />
       </button>
       <button @click="currentPage = 2" class="connected-button">
         <img src="../assets/crop.png" alt="按钮2" class="button-icon4" />
       </button>
       <button @click="currentPage = 3" class="connected-button">
-        <img src="path/to/image2.png" alt="按钮3" class="button-icon" />
+        <img src="../assets/filter.png" alt="按钮3" class="button-icon4" />
       </button>
       <button @click="currentPage = 4" class="connected-button">
         <img src="../assets/bergerIcon.png" alt="按钮4" class="button-icon4" />
@@ -57,16 +57,98 @@
         <span>{{ saturation }}</span>
       </div>
     </div>
-    <!-- 第二个页面的内容 -->
-    <div v-if="currentPage === 2">
-      <!-- 页面 2 的内容 -->
-      <p>这是第二个页面的内容。</p>
-    </div>
     <!-- 第三个页面的内容 -->
     <div v-if="currentPage === 3">
-      <!-- 页面 3 的内容 -->
-      <p>这是第三个页面的内容。</p>
+  <!-- 页面 三 的四个分区 -->
+    <div class="zone-container">
+      <div
+        class="zone"
+        :class="{ selected: selectedZone === 1 }"
+        @click="selectZone(1)"
+      >
+        <h4>区域 1</h4>
+        <div class="zone-content">
+          <button @click.stop="performAction('action1-1')">按钮 1-1</button>
+          <button @click.stop="performAction('action1-2')">按钮 1-2</button>
+          <input type="range" v-model="zone1Slider" @input="emitZoneChanges" />
+        </div>
+      </div>
+      <div
+        class="zone"
+        :class="{ selected: selectedZone === 2 }"
+        @click.stop="selectZone(2)"
+      >
+        <h4>区域 2</h4>
+        <div class="zone-content">
+          <button @click.stop="performAction('action2-1')">按钮 2-1</button>
+          <button @click.stop="performAction('action2-2')">按钮 2-2</button>
+          <input type="range" v-model="zone2Slider" @input="emitZoneChanges" />
+        </div>
+      </div>
+      <div
+        class="zone"
+        :class="{ selected: selectedZone === 3 }"
+        @click="selectZone(3)"
+      >
+        <h4>区域 3</h4>
+        <div class="zone-content">
+          <button @click.stop="performAction('action3-1')">按钮 3-1</button>
+          <button @click.stop="performAction('action3-2')">按钮 3-2</button>
+          <input type="range" v-model="zone3Slider" @input="emitZoneChanges" />
+        </div>
+      </div>
+      <div
+        class="zone"
+        :class="{ selected: selectedZone === 4 }"
+        @click="selectZone(4)"
+      >
+        <h4>区域 4</h4>
+        <div class="zone-content">
+          <button @click.stop="performAction('action4-1')">按钮 4-1</button>
+          <button @click.stop="performAction('action4-2')">按钮 4-2</button>
+          <input type="range" v-model="zone4Slider" @input="emitZoneChanges" />
+        </div>
+      </div>
     </div>
+  </div>
+
+<!-- 第二个页面的内容 -->
+<div v-if="currentPage === 2">
+  <div class="toggle-section" :class="{ expanded: expandedSection === 'rectCrop' }">
+    <h4 @click.stop="toggleSection('rectCrop')">矩形裁剪</h4>
+    <div v-if="expandedSection === 'rectCrop'" class="section-content">
+      <button @click="performAction('rectCrop')">操作按钮</button>
+      <!-- <input type="range" v-model="rectCropSlider" @input="emitZoneChanges" /> -->
+    </div>
+  </div>
+
+  <div class="toggle-section" :class="{ expanded: expandedSection === 'freeCrop' }">
+    <h4 @click.stop="toggleSection('freeCrop')">自由裁剪</h4>
+    <div v-if="expandedSection === 'freeCrop'" class="section-content">
+      <div class="button-row">
+        <button @click="cancelFreeCrop">取消</button>
+        <button @click="applyFreeCrop">应用</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toggle-section" :class="{ expanded: expandedSection === 'rotate' }">
+    <h4 @click.stop="toggleSection('rotate')">图片旋转</h4>
+    <div v-if="expandedSection === 'rotate'" class="section-content">
+      <button @click="performAction('rotate')">操作按钮</button>
+      <!-- <input type="range" v-model="rotateSlider" @input="emitZoneChanges" /> -->
+    </div>
+  </div>
+
+  <div class="toggle-section" :class="{ expanded: expandedSection === 'resize' }">
+    <h4 @click.stop="toggleSection('resize')">调整大小</h4>
+    <div v-if="expandedSection === 'resize'" class="section-content">
+      <button @click="performAction('resize')">操作按钮</button>
+      <!-- <input type="range" v-model="resizeSlider" @input="emitZoneChanges" /> -->
+    </div>
+  </div>
+</div>
+
     <!-- 第四个页面的内容 -->
     <div v-if="currentPage === 4">
       <!-- 添加十个按钮 -->
@@ -98,30 +180,30 @@
 export default {
   name: 'RightSidebar',
   props: {
-    temprature: {
-      type: Number,
-      default: 0
-    },
-    hue: {
-      type: Number,
-      default: 0
-    },
-    exposure: {
-      type: Number,
-      default: 0
-    },
-    contrast: {
-      type: Number,
-      default: 0
-    },
-    sharpen: {
-      type: Number,
-      default: 0
-    },
-    saturation: {
-      type: Number,
-      default: 0
-    },
+    // temprature: {
+    //   type: Number,
+    //   default: 0
+    // },
+    // hue: {
+    //   type: Number,
+    //   default: 0
+    // },
+    // exposure: {
+    //   type: Number,
+    //   default: 0
+    // },
+    // contrast: {
+    //   type: Number,
+    //   default: 0
+    // },
+    // sharpen: {
+    //   type: Number,
+    //   default: 0
+    // },
+    // saturation: {
+    //   type: Number,
+    //   default: 0
+    // },
     Image: {
       type: Object,
       default: null
@@ -130,10 +212,24 @@ export default {
   data () {
     return {
       histogramImage: '',
-      currentPage: 1
+      currentPage: 1,
+      selectedZone: null, // 三区域选中box
+      expandedSection: '', // 二区域当前展开的部分
+      temprature: 0,
+      hue: 0,
+      exposure: 0,
+      contrast: 0,
+      sharpen: 0,
+      saturation: 0
     }
   },
   watch: {
+    currentPage (newVal) {
+      if (newVal !== 2) {
+        this.expandedSection = null
+        this.$emit('set-operation', null)
+      }
+    },
     Image: {
       immediate: true,
       handler (newImage) {
@@ -145,9 +241,31 @@ export default {
     }
   },
   methods: {
-    confirmChanges () {
-      this.$emit('confirm-changes')
+    // ---------------------------二区域
+    toggleSection (section) { // 在 toggleSection 方法中，判断是否是 freeCrop 操作，并调用 setFreeCropOperation 方法。
+      this.expandedSection = this.expandedSection === section ? null : section
+      if (section === 'freeCrop') {
+        this.setFreeCropOperation()
+      }
     },
+    // free crop
+    setFreeCropOperation () {
+      this.setOperation('freeCrop')
+    },
+    applyFreeCrop () {
+      this.expandedSection = ''
+      this.$emit('apply-freeCrop')
+    },
+
+    cancelFreeCrop () {
+      // 处理取消操作
+    },
+    // selectZone (zone) {
+    //   this.selectedZone = zone
+    //   this.$emit('zone-selected', zone) // 触发一个事件，通知父组件或其他逻辑
+    // },
+
+    // ---------------------------四区域
     setOperation (operation) {
       this.operation = operation
       this.$emit('set-operation', operation)
@@ -178,11 +296,36 @@ export default {
           console.error('Error fetching histogram:', error)
         })
     },
+
+    // ---------------------------底部
+    performAction (action) {
+      // console.log('Perform action:', action)
+      // this.$emit('perform-action', { zone: this.selectedZone, action })
+    },
+    emitZoneChanges () {
+      this.$emit('zone-settings-updated', {
+      })
+    },
+    confirmChanges () {
+      this.$emit('confirm-changes')
+    },
     emitUndoAction () {
       this.$emit('undo-action')
     },
     emitNextImage () {
       this.$emit('next-image')
+    },
+    updateConfig () {
+      this.$nextTick(() => {
+        if (this.Image && this.Image.config) {
+          this.temprature = this.Image.config.temprature || 0
+          this.hue = this.Image.config.hue || 0
+          this.exposure = this.Image.config.exposure || 0
+          this.contrast = this.Image.config.contrast || 0
+          this.sharpen = this.Image.config.sharpen || 0
+          this.saturation = this.Image.config.saturation || 0
+        }
+      })
     }
   }
 }
@@ -326,6 +469,123 @@ export default {
 }
 
 .bottom-button:hover {
+  background-color: #4a4a4a;
+}
+/*四个box */
+.zone-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  max-height: 470px; /* 设置大窗口的最大高度 */
+  overflow-y: auto; /* 启用垂直滚动 */
+}
+
+/* 自定义滚动条样式 */
+.zone-container::-webkit-scrollbar {
+  width: 8px; /* 滚动条宽度 */
+}
+
+.zone-container::-webkit-scrollbar-thumb {
+  background-color: #4a4a4a; /* 滚动条颜色 */
+  border-radius: 4px; /* 滚动条圆角 */
+}
+
+.zone-container::-webkit-scrollbar-track {
+  background-color: #2c2c2c; /* 滚动条背景色 */
+}
+
+/* 保持四个小窗口的样式，并简化 */
+.zone {
+  background-color: #3a3a3a;
+  border: 2px solid #2c2c2c;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.zone.selected {
+  border-color: #00aaff; /* 选中区域的边框颜色 */
+}
+
+.zone-content {
+  margin-top: 10px;
+}
+
+.zone-content button {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 5px;
+  background-color: #4a4a4a;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.zone-content button:hover {
+  background-color: #5a5a5a; /* 鼠标悬停时的颜色 */
+}
+
+.zone-content input[type="range"] {
+  width: 100%;
+  margin-top: 10px; /* 添加一些间距 */
+}
+
+/* 标题内容样式 */
+.toggle-section {
+  margin-bottom: 10px;
+}
+
+.toggle-section.expanded {
+  border: 2px solid #00aaff; /* 展开时的边框颜色 */
+  border-radius: 8px; /* 圆角 */
+}
+
+.toggle-section h4 {
+  cursor: pointer;
+  margin: 0;
+  padding: 10px;
+  background-color: transparent; /* 背景色与侧边栏一致 */
+  color: #ffffff; /* 文字颜色 */
+  border: 1px solid #2c2c2c; /* 标题的边框 */
+  border-bottom: none; /* 去掉底部边框，以避免与内容分割线重叠 */
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.section-content {
+  padding: 10px;
+  padding-left: 30px; /* 内容缩进 */
+  background-color: #2c2c2c;
+  border: none; /* 去掉边框 */
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* 自由裁剪的按钮行 */
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.button-row button {
+  flex: 1;
+  padding: 10px;
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border: 1px solid #2c2c2c;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button-row button:not(:last-child) {
+  margin-right: 10px; /* 按钮之间的间距 */
+}
+
+.button-row button:hover {
   background-color: #4a4a4a;
 }
 </style>

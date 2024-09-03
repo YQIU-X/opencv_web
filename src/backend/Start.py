@@ -25,7 +25,7 @@ def run_scripts():
     process.append(undo_action_process)
     process.append(style_migration_process)
     process.append(seg_human_process)
-    process.append(point_callback_process)
+    # process.append(point_callback_process)
 
     print("Starting scripts...")
     try:

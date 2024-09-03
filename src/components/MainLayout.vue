@@ -5,7 +5,10 @@
       @upload_images="upload_images"
     />
     <div class="content">
-      <Workspace :Img="currentImage ? currentImage.src : ''"/>
+      <Workspace
+        :Img="currentImage ? currentImage.src : ''"
+        @coordinate-clicked="handleCoordinate"
+      />
       <BottomGallery
         ref="bottomGallery"
         :selectedImage="currentImage ? currentImage : {}"
@@ -18,17 +21,13 @@
       />
     </div>
     <RightSidebar
-      :temprature="currentImage ? currentImage.config.temprature : 0"
-      :hue="currentImage ? currentImage.config.hue : 0"
-      :exposure="currentImage ? currentImage.config.exposure : 0"
-      :contrast="currentImage ? currentImage.config.contrast : 0"
-      :sharpen="currentImage ? currentImage.config.sharpen : 0"
-      :saturation="currentImage ? currentImage.config.saturation : 0"
+      ref="RightSidebar"
       :Image="currentImage ? currentImage : {}"
+      @set-operation="setOperation"
+      @apply-freeCrop="applyFreeCropOperation"
       @update-settings="updateSettings"
       @undo-action="undoAction"
       @next-image="nextImage"
-      @set-operation="setOperation"
       @confirm-changes="handleConfirmChanges"
     />
   </div>
@@ -60,9 +59,58 @@ export default {
   methods: {
     setOperation (operation) {
       this.currentOperation = operation
+      if (operation === 'freeCrop') return
       this.isGalleryExpanded = true
       this.tempImage1 = null
       this.tempImage2 = null
+    },
+    handleCoordinate (x, y) {
+      if (this.currentOperation === 'freeCrop' && this.currentImage) {
+        fetch('http://localhost:5001/free_crop', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ x, y })
+        })
+          .then(response => response.json())
+          .then(data => {
+            // this.currentImage = {
+            //   id: data.id,
+            //   src: `data:image/jpeg;base64,${data.src}`,
+            //   config: data.config
+            // }
+            // this.select_image(this.currentImage)
+          })
+          .catch(error => {
+            console.error('Error sending coordinates:', error)
+          })
+      }
+    },
+    applyFreeCropOperation () {
+      if (this.currentOperation === 'freeCrop' && this.currentImage) {
+        fetch('http://localhost:5066/apply_freeCrop', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: this.currentImage.id })
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('stop')
+            this.currentImage = {
+              id: data.id,
+              src: `data:image/jpeg;base64,${data.src}`,
+              config: data.config
+            }
+            this.select_image(this.currentImage)
+            this.currentOperation = null
+          })
+          .catch(error => {
+            console.error('Error applying freeCrop:', error)
+          })
+      }
     },
     selectTempImage (image) {
       if (this.currentOperation === null) return
@@ -154,13 +202,10 @@ export default {
       }
       this.$refs.bottomGallery.updateImages()
     },
-    freshCurrentImage (img64, newConfig) {
-      this.currentImage.src = img64
-      this.currentImage.config = newConfig
-      this.$refs.bottomGallery.updateImages()
-    },
     select_image (image) {
       this.currentImage = image
+      console.log(image.config)
+      this.$refs.RightSidebar.updateConfig()
       if (this.currentOperation) {
         console.log('this.currentOperation: ', this.currentOperation)
         this.selectTempImage(this.currentImage)
@@ -186,8 +231,12 @@ export default {
           return response.json()
         })
         .then(data => {
-          const base64Image = `data:image/jpeg;base64,${data.image}`
-          this.freshCurrentImage(base64Image, data.config)
+          this.currentImage = {
+            id: data.id,
+            src: `data:image/jpeg;base64,${data.src}`,
+            config: data.config
+          }
+          this.$refs.bottomGallery.updateImages()
         })
         .catch(error => {
           console.error('Error updating image:', error)
@@ -206,6 +255,7 @@ export default {
     },
     undoAction () {
       this.clean()
+      this.operation = null
       if (this.currentImage && this.currentImage.id) {
         fetch('http://localhost:5004/undo_action', {
           method: 'POST',
@@ -223,6 +273,7 @@ export default {
             }
             this.select_image(this.currentImage)
             this.$refs.bottomGallery.updateImages()
+            this.$refs.RightSidebar.updateConfig()
           })
           .catch(error => {
             console.error('Error in undoAction:', error)
@@ -265,13 +316,21 @@ export default {
       }
     },
     handleClickOutside (event) {
+      if (this.currentOperation === 'freeCrop') {
+        return
+      }
       const bottomGallery = this.$refs.bottomGallery.$el
       const RightSidebar = this.$refs.RightSidebar ? this.$refs.RightSidebar.$el : null
-      if (this.isGalleryExpanded &&
+      const Workspace = this.$refs.Workspace ? this.$refs.Workspace.$el : null
+      if ((this.isGalleryExpanded &&
       !bottomGallery.contains(event.target) &&
-       (!RightSidebar || !RightSidebar.contains(event.target)) &&
-       this.operation === null) {
-        this.clean()
+       (!RightSidebar || !RightSidebar.contains(event.target))
+      ) ||
+        (!Workspace || !Workspace.contains(event.target))) {
+        this.tempImage1 = null
+        this.tempImage2 = null
+        this.isGalleryExpanded = false
+        this.currentOperation = null
       }
     }
   },

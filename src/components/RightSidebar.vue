@@ -67,54 +67,6 @@
     <div v-if="currentPage === 3">
   <!-- 页面 三 的四个分区 -->
     <div class="zone-container">
-      <div
-        class="zone"
-        :class="{ selected: selectedZone === 1 }"
-        @click="selectZone(1)"
-      >
-        <h4>区域 1</h4>
-        <div class="zone-content">
-          <button @click.stop="performAction('action1-1')">按钮 1-1</button>
-          <button @click.stop="performAction('action1-2')">按钮 1-2</button>
-          <input type="range" v-model="zone1Slider" @input="emitZoneChanges" />
-        </div>
-      </div>
-      <div
-        class="zone"
-        :class="{ selected: selectedZone === 2 }"
-        @click.stop="selectZone(2)"
-      >
-        <h4>区域 2</h4>
-        <div class="zone-content">
-          <button @click.stop="performAction('action2-1')">按钮 2-1</button>
-          <button @click.stop="performAction('action2-2')">按钮 2-2</button>
-          <input type="range" v-model="zone2Slider" @input="emitZoneChanges" />
-        </div>
-      </div>
-      <div
-        class="zone"
-        :class="{ selected: selectedZone === 3 }"
-        @click="selectZone(3)"
-      >
-        <h4>区域 3</h4>
-        <div class="zone-content">
-          <button @click.stop="performAction('action3-1')">按钮 3-1</button>
-          <button @click.stop="performAction('action3-2')">按钮 3-2</button>
-          <input type="range" v-model="zone3Slider" @input="emitZoneChanges" />
-        </div>
-      </div>
-      <div
-        class="zone"
-        :class="{ selected: selectedZone === 4 }"
-        @click="selectZone(4)"
-      >
-        <h4>区域 4</h4>
-        <div class="zone-content">
-          <button @click.stop="performAction('action4-1')">按钮 4-1</button>
-          <button @click.stop="performAction('action4-2')">按钮 4-2</button>
-          <input type="range" v-model="zone4Slider" @input="emitZoneChanges" />
-        </div>
-      </div>
     </div>
   </div>
 
@@ -144,13 +96,13 @@
     <h4 @click.stop="toggleSection('rotate')">图片旋转</h4>
     <div v-if="expandedSection === 'rotate'" class="section-content">
       <div class="slider-container">
-      <label>旋转角度</label>
+      <label>角度</label>
       <input type="range" min="-180" max="180" v-model="rotationAngle" @input="emitRotationChanges" />
       <span>{{ rotationAngle }}°</span>
     </div>
     <div class="button-row">
       <button @click="cancelCrop">取消</button>
-      <button @click="applyRotation">应用</button>
+      <button @click="applyCrop">应用</button>
     </div>
     </div>
   </div>
@@ -230,7 +182,6 @@ export default {
       selectedButton: 1,
       histogramImage: '',
       currentPage: 1,
-      selectedZone: null, // 三区域选中box
       expandedSection: '', // 二区域当前展开的部分
       temprature: 0,
       hue: 0,
@@ -326,10 +277,6 @@ export default {
     },
 
     // ---------------------------底部
-    emitZoneChanges () {
-      this.$emit('zone-settings-updated', {
-      })
-    },
     confirmChanges () {
       this.$emit('confirm-changes')
     },
@@ -538,67 +485,6 @@ h3{
 
 .bottom-button:hover {
   background-color: #4a4a4a;
-}
-/*四个box */
-.zone-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px;
-  max-height: 470px; /* 设置大窗口的最大高度 */
-  overflow-y: auto; /* 启用垂直滚动 */
-}
-
-/* 自定义滚动条样式 */
-.zone-container::-webkit-scrollbar {
-  width: 8px; /* 滚动条宽度 */
-}
-
-.zone-container::-webkit-scrollbar-thumb {
-  background-color: #4a4a4a; /* 滚动条颜色 */
-  border-radius: 4px; /* 滚动条圆角 */
-}
-
-.zone-container::-webkit-scrollbar-track {
-  background-color: #2c2c2c; /* 滚动条背景色 */
-}
-
-/* 保持四个小窗口的样式，并简化 */
-.zone {
-  background-color: #3a3a3a;
-  border: 2px solid #2c2c2c;
-  padding: 10px;
-  cursor: pointer;
-  transition: border-color 0.3s ease;
-}
-
-.zone.selected {
-  border-color: #00aaff; /* 选中区域的边框颜色 */
-}
-
-.zone-content {
-  margin-top: 10px;
-}
-
-.zone-content button {
-  display: block;
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 5px;
-  background-color: #4a4a4a;
-  color: #ffffff;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.zone-content button:hover {
-  background-color: #5a5a5a; /* 鼠标悬停时的颜色 */
-}
-
-.zone-content input[type="range"] {
-  width: 100%;
-  margin-top: 10px; /* 添加一些间距 */
 }
 
 /* 标题内容样式 */

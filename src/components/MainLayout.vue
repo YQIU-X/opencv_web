@@ -153,7 +153,7 @@ export default {
       }
     },
     applyCropOperation () {
-      if ((this.currentOperation === 'freeCrop' || this.currentOperation === 'rectCrop') && this.currentImage) {
+      if (this.currentImage) {
         fetch('http://localhost:5011/apply_Crop', {
           method: 'POST',
           headers: {

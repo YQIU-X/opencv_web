@@ -7,54 +7,60 @@
       </div>
     </div>
     <!-- 按钮行 -->
-    <div class="button-row">
-      <button @click="currentPage = 1" class="connected-button">
-        <img src="../assets/dataIcon.png" alt="按钮1" class="button-icon4" />
-      </button>
-      <button @click="currentPage = 2" class="connected-button">
-        <img src="../assets/crop.png" alt="按钮2" class="button-icon4" />
-      </button>
-      <button @click="currentPage = 3" class="connected-button">
-        <img src="../assets/filter.png" alt="按钮3" class="button-icon4" />
-      </button>
-      <button @click="currentPage = 4" class="connected-button">
-        <img src="../assets/bergerIcon.png" alt="按钮4" class="button-icon4" />
-      </button>
+  <div class="action-container">
+    <div class="button-wrapper">
+      <div class="button-row">
+        <button @click="selectButton(1)" :class="{'connected-button': true, 'selected': selectedButton === 1}">
+          <img src="../assets/dataIcon.png" alt="按钮1" class="button-icon4" />
+        </button>
+        <button @click="selectButton(2)" :class="{'connected-button': true, 'selected': selectedButton === 2}">
+          <img src="../assets/crop.png" alt="按钮2" class="button-icon4" />
+        </button>
+        <button @click="selectButton(3)" :class="{'connected-button': true, 'selected': selectedButton === 3}">
+          <img src="../assets/filter.png" alt="按钮3" class="button-icon4" />
+        </button>
+        <button @click="selectButton(4)" :class="{'connected-button': true, 'selected': selectedButton === 4}">
+          <img src="../assets/bergerIcon.png" alt="按钮4" class="button-icon4" />
+        </button>
+      </div>
     </div>
+
+    <div class="divider"></div>
+
     <!-- 根据 currentPage 显示不同的内容 -->
     <div v-if="currentPage === 1">
       <h3>白平衡</h3>
       <div class="slider-container">
         <label>色温</label>
-        <input type="range" min="-100" max="100" v-model="temprature" @input="emitChanges" />
-        <span>{{ temprature }}</span>
+        <input type="range" min="-100" max="100" v-model="temprature" @change="emitChanges" class="range-input" />
+        <input type="number" min="-100" max="100" v-model="temprature" @change="emitChanges" class="number-input" />
       </div>
       <div class="slider-container">
         <label>色调</label>
-        <input type="range" min="-90" max="90" v-model="hue" @input="emitChanges" />
-        <span>{{ hue }}</span>
+        <input type="range" min="-90" max="90" v-model="hue" @change="emitChanges" class="range-input" />
+        <input type="number" min="-90" max="90" v-model="hue" @change="emitChanges" class="number-input" />
       </div>
       <h3>色调</h3>
       <div class="slider-container">
         <label>曝光</label>
-        <input type="range" min="-100" max="100" v-model="exposure" @input="emitChanges" />
-        <span>{{ exposure }}</span>
+        <input type="range" min="-100" max="100" v-model="exposure" @change="emitChanges" class="range-input" />
+        <input type="number" min="-100" max="100" v-model="exposure" @change="emitChanges" class="number-input" />
       </div>
       <div class="slider-container">
         <label>对比</label>
-        <input type="range" min="-10" max="10" v-model="contrast" @input="emitChanges" />
-        <span>{{ contrast }}</span>
+        <input type="range" min="-10" max="10" v-model="contrast" @change="emitChanges" class="range-input" />
+        <input type="number" min="-10" max="10" v-model="contrast" @change="emitChanges" class="number-input" />
       </div>
       <h3>偏好</h3>
       <div class="slider-container">
         <label>锐化</label>
-        <input type="range" min="0" max="100" v-model="sharpen" @input="emitChanges" />
-        <span>{{ sharpen }}</span>
+        <input type="range" min="0" max="100" v-model="sharpen" @change="emitChanges" class="range-input" />
+        <input type="number" min="0" max="100" v-model="sharpen" @change="emitChanges" class="number-input" />
       </div>
       <div class="slider-container">
         <label>饱和</label>
-        <input type="range" min="-50" max="50" v-model="saturation" @input="emitChanges" />
-        <span>{{ saturation }}</span>
+        <input type="range" min="-50" max="50" v-model="saturation" @change="emitChanges" class="range-input" />
+        <input type="number" min="-50" max="50" v-model="saturation" @change="emitChanges" class="number-input" />
       </div>
     </div>
     <!-- 第三个页面的内容 -->
@@ -183,6 +189,7 @@
       <button @click="$emit('next-image')" class="bottom-button">下一张</button>
     </div>
   </div>
+</div>
 </template>
 
 <script>
@@ -220,6 +227,7 @@ export default {
   },
   data () {
     return {
+      selectedButton: 1,
       histogramImage: '',
       currentPage: 1,
       selectedZone: null, // 三区域选中box
@@ -251,6 +259,10 @@ export default {
     }
   },
   methods: {
+    selectButton (buttonNumber) {
+      this.selectedButton = buttonNumber // 设置当前选中的按钮
+      this.currentPage = buttonNumber // 根据选中的按钮更新 currentPage
+    },
     // ---------------------------二区域
     toggleSection (section) { // 在 toggleSection 方法中，判断是否是 freeCrop 操作，并调用 setFreeCropOperation 方法。
       this.expandedSection = this.expandedSection === section ? null : section
@@ -344,6 +356,36 @@ export default {
 </script>
 
 <style scoped>
+.image-container {
+  border: 4px solid #0c0606cc;
+  padding: 3px;
+  background-color: #2c2c2c;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  max-width: 300px;
+}
+
+.action-container {
+  border: 4px solid #0c0606cc;
+  padding: 3px;
+  background-color: #2c2c2c;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  margin-top: 20px;
+  padding-top: 5%;
+  margin-bottom: 20px;
+  max-width: 300px;
+}
+
+.divider {
+  width: 100%;
+  height: 10px;
+  background-color: #000000b9;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
 .right-sidebar {
   width: 300px;
   padding: 10px;
@@ -355,7 +397,7 @@ export default {
 .image-title {
   margin: 0;
   margin-bottom: 10px;
-  text-align: right;
+  text-align: left;
 }
 
 .histogram-section {
@@ -377,21 +419,21 @@ export default {
 
 .connected-button {
   flex: 1;
-  padding: 10px 0;
+  padding: 12px 0;
   background-color: #3a3a3a;
   border: 1px solid #2c2c2c;
   color: #ffffff;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, padding 0.3s ease;
+  border-radius: 8px;
+  margin: 0 5px;
 }
 
-.connected-button:not(:last-child) {
-  border-right: none;
-}
-
+.connected-button.selected,
 .connected-button:hover {
-  background-color: #2c2c2c;
+  background-color: #000000 !important; /* 悬停和选中时的背景颜色设置为黑色 */
+  border-color: #000000 !important; /* 悬停和选中时的边框颜色设置为黑色 */
 }
 
 .button-icon1 {
@@ -413,12 +455,26 @@ export default {
 .slider-container label {
   flex: 0 0 50px; /* Set a fixed width for the label */
   font-size: 1em;
-  margin-right: 10px; /* Space between label and slider */
+  margin-right: 0px;
+  margin-left: 10px;
+}
+
+h3{
+  margin: 0;
+  display: flex;
+  justify-content: center; /* 水平居中标题 */
+  align-items: center; /* 垂直居中标题 */
+  height: 50px; /* 设置固定高度来保持一致性 */
 }
 
 .slider-container input[type="range"] {
   flex: 1; /* Take up the remaining space */
   margin-right: 10px; /* Space between slider and value */
+}
+
+.number-input {
+  width: 40px;
+  text-align: center;
 }
 
 .slider-container span {
@@ -551,7 +607,7 @@ export default {
 }
 
 .toggle-section.expanded {
-  border: 2px solid #00aaff; /* 展开时的边框颜色 */
+  border: 4px solid #0c0606cc; /* 展开时的边框颜色 */
   border-radius: 8px; /* 圆角 */
 }
 
@@ -591,6 +647,7 @@ export default {
   border: 1px solid #2c2c2c;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  border-radius: 8px;
 }
 
 .button-row button:not(:last-child) {

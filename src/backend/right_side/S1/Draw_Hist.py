@@ -22,33 +22,36 @@ CORS(app)
 def drawHist(image):
     colors = ('b', 'g', 'r')
     
-    # 创建一个带灰色背景的图形
+    # Create a figure with a grey background
     fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor('#2c2c2c')  # 整个图形背景设置为灰色
-    ax.set_facecolor('#2c2c2c')  # 坐标轴背景设置为灰色
+    fig.patch.set_facecolor('#2c2c2c')  # Set the figure background to grey
+    ax.set_facecolor('#2c2c2c')  # Set the axis background to grey
 
     for i, color in enumerate(colors):
         hist = cv2.calcHist([image], [i], None, [256], [0, 256])
-        hist = gaussian_filter1d(hist, sigma=2)  # 平滑处理
+        hist = gaussian_filter1d(hist, sigma=2)  # Apply smoothing
         
-        # 绘制曲线，并添加白色边缘效果
+        # Fill the area under the curve with color
+        ax.fill_between(range(256), hist.ravel(), color=color, alpha=0.3)
+        
+        # Plot the curve with a white border effect
         ax.plot(hist, color=color, linewidth=2, alpha=0.8,
                 path_effects=[patheffects.Stroke(linewidth=4, foreground='white'),
                               patheffects.Normal()])
 
     ax.set_xlim([0, 256])
     
-    # 去除网格、坐标轴及其标签
+    # Remove grid, axis, and labels
     ax.grid(False)
     ax.axis('off')
 
-    # 将绘制的直方图保存到一个内存文件
+    # Save the histogram image to a memory file
     buf = BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
     buf.seek(0)
     plt.close(fig)
 
-    # 从 BytesIO 读取图像并将其转换为 NumPy 数组
+    # Convert the image from BytesIO to a NumPy array
     img_array = np.frombuffer(buf.getvalue(), dtype=np.uint8)
     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
 

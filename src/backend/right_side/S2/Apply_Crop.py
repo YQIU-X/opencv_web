@@ -7,7 +7,7 @@ import base64
 from flask_cors import CORS
 import sys
 sys.path.append(".")
-from src.backend.Utils import image_2_base64
+from src.backend.Utils import image_2_base64, base64_2_image
 from src.backend.data.ImageManager import ImageManager
 from src.backend.right_side.S1.Apply_Config import Apply_Config
 
@@ -36,16 +36,31 @@ def read_points():
             return [tuple(point) for point in points_list]
     return []
 
+TEMP_NAME = 'temp.pkl'
+DATA_ROOT = ".\\src\\backend\\data"
+
+TEMP_FILE = os.path.join(DATA_ROOT, TEMP_NAME)
+
+import pickle
+
+
+def load_image():
+    if os.path.exists(TEMP_FILE):
+        with open(TEMP_FILE, 'rb') as f:
+            img = pickle.load(f)
+            return img
+
 
 @app.route('/apply_Crop', methods=['POST'])
 def apply_crop():
     data = request.json
     image_id = data.get('id')
-    
+
+    image = load_image()
     points = read_points()
 
     manager = ImageManager()
-    image, config = manager.get_last_image(image_id)
+    _, config = manager.get_last_image(image_id)
     result_img = extract_region(image, points)
     current_img = Apply_Config(result_img, config)
 

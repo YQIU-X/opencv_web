@@ -8,6 +8,7 @@ yarn-error.log*
 
 package-lock.json
 src/backend/data/IMAGEs.pkl
+src/backend/data/temp.pkl
 src/backend/data/points.json
 src/backend/help.md
 

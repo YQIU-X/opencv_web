@@ -238,16 +238,30 @@ def draw_rectangle(img, points):
 
     return img
 
-def rotate_image(image, angle):
+
+TEMP_NAME = 'temp.pkl'
+DATA_ROOT = ".\\src\\backend\\data"
+
+TEMP_FILE = os.path.join(DATA_ROOT, TEMP_NAME)
+
+import pickle
+
+def save_image(img):
+    with open(TEMP_FILE, 'wb') as f:
+        pickle.dump(img, f)
+
+
+def rotate_image_roll(image, src, roll):
     """
     Rotate the given image by the specified angle and return the rotated image.
     """
     # 获取旋转后的图像尺寸和旋转矩阵
-    new_w, new_h, rotation_matrix = get_rotated_boundaries(image, angle)
+    new_w, new_h, rotation_matrix = get_rotated_boundaries(image, roll)
     
     h, w = image.shape[:2]
     # 旋转图像
     rotated_image = cv2.warpAffine(image, rotation_matrix, (new_w, new_h))
+    save_image(rotated_image)
 
     # 绘制水平和垂直虚线
     draw_dashed_line(rotated_image, (new_w // 2, 0), (new_w // 2, new_h), (0, 255, 0), 2)  # 竖线
@@ -261,28 +275,90 @@ def rotate_image(image, angle):
 
     # 绘制最大内接矩形
     rotated_image = draw_rectangle(rotated_image, max_rect_corners)
-
     return rotated_image
+
+
+def adjust_vertical_perspective(image, src, correction=0):
+    (h, w) = image.shape[:2]
+    src_pts = np.float32([[0, 0], [w, 0], [0, h], [w, h]])
+    if correction >= 0:
+        dst_pts = np.float32([[0 + correction, 0], [w - correction, 0], 
+                              [0, h], [w, h]])
+        points = [(0 + correction, 0), (w - correction, 0), (w - correction, h), (0 + correction, h)]
+    else:
+        correction = abs(correction)
+        dst_pts = np.float32([[0, 0], [w, 0], 
+                              [0 + correction, h], [w - correction, h]])
+        points = [(0 + correction, 0), (w - correction, 0), (w - correction, h), (0 + correction, h)]
+
+    M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+    new_w = w
+    new_h = h
+    corrected_image = cv2.warpPerspective(image, M, (new_w, new_h))
+    src = cv2.warpPerspective(src, M, (new_w, new_h))
+    save_image(src)
+    
+    corrected_image = draw_rectangle(corrected_image, points)
+    save_points(points)
+    return corrected_image
+
+def adjust_horizon_perspective(image, src, correction=0):
+    (h, w) = image.shape[:2]
+    src_pts = np.float32([[0, 0], [w, 0], [0, h], [w, h]])
+
+    if correction >= 0:
+        dst_pts = np.float32([[0, 0], [w, 0 + correction], 
+                              [0, h], [w, h - correction]])
+        points = [(0, 0 + correction), (w, 0 + correction), (w, h - correction), (0, h - correction)]
+    else:
+        correction = abs(correction)
+        dst_pts = np.float32([[0, correction], [w, 0], 
+                              [0, h - correction], [w, h]])
+        points = [(0, 0 + correction), (w, 0 + correction), (w, h - correction), (0, h - correction)]
+    
+
+    M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+
+    new_w = w
+    new_h = h
+
+    corrected_image = cv2.warpPerspective(image, M, (new_w, new_h))
+    src = cv2.warpPerspective(src, M, (new_w, new_h))
+    save_image(src)
+    corrected_image = draw_rectangle(corrected_image, points)
+    save_points(points)
+    return corrected_image
+
 
 @app.route('/update_rotation', methods=['POST'])
 def update_rotation():
     data = request.json
     image_id = data.get('id')
-    angle = data.get('angle')
+    roll = data.get('roll')
+    yaw = data.get('yaw')
+    pitch = data.get('pitch')
 
     try:
-        # 将 angle 转换为浮点数
-        angle = float(angle)
+        roll = int(roll)
+        yaw = int(yaw)
+        pitch = int(pitch)
     except ValueError:
         return jsonify({"error": "Invalid angle value"}), 400
 
     manager = ImageManager()
     current_image = manager.get_current_image(image_id)
+    src, _ = manager.get_last_image(image_id)
 
     if current_image is None:
         return jsonify({"error": "Image not found"}), 404
+    
+    if(pitch == 0 and yaw ==0 ):
+        rotated_image = rotate_image_roll(current_image, src, roll)
+    elif(roll == 0 and yaw == 0 ):
+        rotated_image = adjust_horizon_perspective(current_image, src, pitch)
+    elif(roll == 0 and pitch == 0 ):
+        rotated_image =  adjust_vertical_perspective(current_image, src, yaw)
 
-    rotated_image = rotate_image(current_image, angle)
     img_base64 = image_2_base64(rotated_image)
     _, config = manager.get_last_image(image_id)
 

@@ -32,7 +32,6 @@
       @confirm-changes="handleConfirmChanges"
 
       @update-rotation="handleUpdateRotation"
-      @apply-rotation="handleApplyRotation"
     />
   </div>
 </template>
@@ -61,7 +60,7 @@ export default {
     }
   },
   methods: {
-    handleUpdateRotation (newAngle) {
+    handleUpdateRotation (roll, yaw, pitch) {
       fetch('http://localhost:5012/update_rotation', {
         method: 'POST',
         headers: {
@@ -69,7 +68,9 @@ export default {
         },
         body: JSON.stringify({
           id: this.currentImage.id, // 当前图像的 ID
-          angle: newAngle // 需要旋转的角度
+          roll: roll,
+          yaw: yaw,
+          pitch: pitch
         })
       })
         .then(response => response.json())
@@ -84,12 +85,6 @@ export default {
         .catch(error => {
           console.error('Error updating rotation:', error)
         })
-    },
-    handleApplyRotation (finalAngle) {
-      // 当应用时，将最终的旋转角度应用到图像上
-      this.rotationAngleBuffer = finalAngle
-      // 在此执行实际的图像旋转操作
-      this.applyRotationToImage(finalAngle)
     },
     setOperation (operation) {
       this.currentOperation = operation
@@ -159,7 +154,10 @@ export default {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ id: this.currentImage.id })
+          body: JSON.stringify({
+            id: this.currentImage.id,
+            src: this.currentImage.src
+          })
         })
           .then(response => response.json())
           .then(data => {
@@ -338,6 +336,7 @@ export default {
             this.select_image(this.currentImage)
             this.$refs.bottomGallery.updateImages()
             this.$refs.RightSidebar.updateConfig()
+            this.$refs.RightSidebar.toggleSection('')
           })
           .catch(error => {
             console.error('Error in undoAction:', error)

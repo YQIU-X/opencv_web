@@ -95,25 +95,37 @@
   <div class="toggle-section" :class="{ expanded: expandedSection === 'rotate' }">
     <h4 @click.stop="toggleSection('rotate')">图片旋转</h4>
     <div v-if="expandedSection === 'rotate'" class="section-content">
-      <div class="slider-container">
-      <label>角度</label>
-      <input type="range" min="-180" max="180" v-model="rotationAngle" @input="emitRotationChanges" />
-      <span>{{ rotationAngle }}°</span>
-    </div>
-    <div class="button-row">
-      <button @click="cancelCrop">取消</button>
-      <button @click="applyCrop">应用</button>
-    </div>
+      <div class="slider-container vertical-slider">
+<div class="slider-item">
+  <label>Roll</label>
+  <input type="range" min="-180" max="180" v-model="roll" @input="emitRotationChanges('roll')" />
+  <span>{{ roll }}°</span>
+</div>
+<div class="slider-item">
+  <label>Yaw</label>
+  <input type="range" min="-180" max="180" v-model="yaw" @input="emitRotationChanges('yaw')" />
+  <span>{{ yaw }}</span>
+</div>
+<div class="slider-item">
+  <label>Pitch</label>
+  <input type="range" min="-180" max="180" v-model="pitch" @input="emitRotationChanges('pitch')" />
+  <span>{{ pitch }}</span>
+</div>
+      </div>
+      <div class="button-row">
+        <button @click="cancelCrop">取消</button>
+        <button @click="applyCrop">应用</button>
+      </div>
     </div>
   </div>
 
-  <div class="toggle-section" :class="{ expanded: expandedSection === 'resize' }">
-    <h4 @click.stop="toggleSection('resize')">调整大小</h4>
-    <div v-if="expandedSection === 'resize'" class="section-content">
-      <button @click="performAction('resize')">操作按钮</button>
+  <!-- <div class="toggle-section" :class="{ expanded: expandedSection === 'resize' }"> -->
+    <!-- <h4 @click.stop="toggleSection('resize')">调整大小</h4> -->
+    <!-- <div v-if="expandedSection === 'resize'" class="section-content"> -->
+      <!-- <button @click="performAction('resize')">操作按钮</button> -->
       <!-- <input type="range" v-model="resizeSlider" @input="emitZoneChanges" /> -->
-    </div>
-  </div>
+    <!-- </div> -->
+  <!-- </div> -->
 </div>
 
     <!-- 第四个页面的内容 -->
@@ -189,7 +201,9 @@ export default {
       contrast: 0,
       sharpen: 0,
       saturation: 0,
-      rotationAngle: 0
+      roll: 0,
+      yaw: 0,
+      pitch: 0
     }
   },
   watch: {
@@ -223,12 +237,22 @@ export default {
         this.setOperation('rectCrop')
       }
     },
-    emitRotationChanges () {
-      this.$emit('update-rotation', this.rotationAngle)
+    emitRotationChanges (changed) {
+      if (changed === 'roll') {
+        this.yaw = 0
+        this.pitch = 0
+      } else if (changed === 'yaw') {
+        this.roll = 0
+        this.pitch = 0
+      } else if (changed === 'pitch') {
+        this.roll = 0
+        this.yaw = 0
+      }
+      this.$emit('update-rotation', this.roll, this.yaw, this.pitch)
     },
     applyRotation () {
-      this.$emit('apply-rotation', this.rotationAngle) // 通知父组件应用旋转
-      this.rotationAngle = 0 // 恢复初始角度
+      this.$emit('apply-rotation', this.roll) // 通知父组件应用旋转
+      this.roll = 0 // 恢复初始角度
     },
     // 应用
     applyCrop () {
@@ -236,14 +260,15 @@ export default {
     },
     // 取消
     cancelCrop () {
-      this.rotationAngle = 0 // 恢复初始角度
+      this.roll = 0 // 恢复初始角度
+      this.yaw = 0
+      this.pitch = 0
       this.$emit('cancel-Crop')
     },
     // selectZone (zone) {
     //   this.selectedZone = zone
     //   this.$emit('zone-selected', zone) // 触发一个事件，通知父组件或其他逻辑
     // },
-
     // ---------------------------四区域
     setOperation (operation) {
       this.operation = operation
@@ -543,4 +568,29 @@ h3{
 .button-row button:hover {
   background-color: #4a4a4a;
 }
+
+/*roll yaw pitch */
+.vertical-slider {
+  display: flex;
+  flex-direction: column;
+}
+
+.slider-item {
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  margin-bottom: 20px;
+}
+
+.slider-item label {
+  margin-right: 5px; /* 标签与滑动条之间的间距 */
+  display: inline-block;
+  min-width: 50px; /* 让标签宽度一致 */
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
 </style>

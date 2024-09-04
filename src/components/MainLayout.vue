@@ -30,6 +30,9 @@
       @undo-action="undoAction"
       @next-image="nextImage"
       @confirm-changes="handleConfirmChanges"
+
+      @update-rotation="handleUpdateRotation"
+      @apply-rotation="handleApplyRotation"
     />
   </div>
 </template>
@@ -58,6 +61,36 @@ export default {
     }
   },
   methods: {
+    handleUpdateRotation (newAngle) {
+      fetch('http://localhost:5012/update_rotation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: this.currentImage.id, // 当前图像的 ID
+          angle: newAngle // 需要旋转的角度
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          this.currentImage = {
+            id: data.id,
+            src: `data:image/jpeg;base64,${data.src}`,
+            config: data.config
+          }
+          this.select_image(this.currentImage)
+        })
+        .catch(error => {
+          console.error('Error updating rotation:', error)
+        })
+    },
+    handleApplyRotation (finalAngle) {
+      // 当应用时，将最终的旋转角度应用到图像上
+      this.rotationAngleBuffer = finalAngle
+      // 在此执行实际的图像旋转操作
+      this.applyRotationToImage(finalAngle)
+    },
     setOperation (operation) {
       this.currentOperation = operation
       if (operation === 'freeCrop' || operation === 'rectCrop') return

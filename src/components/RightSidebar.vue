@@ -137,8 +137,15 @@
   <div class="toggle-section" :class="{ expanded: expandedSection === 'rotate' }">
     <h4 @click.stop="toggleSection('rotate')">图片旋转</h4>
     <div v-if="expandedSection === 'rotate'" class="section-content">
-      <button @click="performAction('rotate')">操作按钮</button>
-      <!-- <input type="range" v-model="rotateSlider" @input="emitZoneChanges" /> -->
+      <div class="slider-container">
+      <label>旋转角度</label>
+      <input type="range" min="-180" max="180" v-model="rotationAngle" @input="emitRotationChanges" />
+      <span>{{ rotationAngle }}°</span>
+    </div>
+    <div class="button-row">
+      <button @click="cancelCrop">取消</button>
+      <button @click="applyRotation">应用</button>
+    </div>
     </div>
   </div>
 
@@ -222,7 +229,8 @@ export default {
       exposure: 0,
       contrast: 0,
       sharpen: 0,
-      saturation: 0
+      saturation: 0,
+      rotationAngle: 0
     }
   },
   watch: {
@@ -252,12 +260,20 @@ export default {
         this.setOperation('rectCrop')
       }
     },
+    emitRotationChanges () {
+      this.$emit('update-rotation', this.rotationAngle)
+    },
+    applyRotation () {
+      this.$emit('apply-rotation', this.rotationAngle) // 通知父组件应用旋转
+      this.rotationAngle = 0 // 恢复初始角度
+    },
     // 应用
     applyCrop () {
       this.$emit('apply-Crop')
     },
     // 取消
     cancelCrop () {
+      this.rotationAngle = 0 // 恢复初始角度
       this.$emit('cancel-Crop')
     },
     // selectZone (zone) {

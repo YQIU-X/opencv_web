@@ -10,7 +10,7 @@ def run_scripts():
     adjust_img_process = subprocess.Popen(["python", os.path.join(root, "right_side/S1/Adjust_Img.py")])
     draw_hist_process = subprocess.Popen(["python", os.path.join(root,"right_side/S1/Draw_Hist.py")])
 
-    free_crop_process = subprocess.Popen(["python", os.path.join(root, "right_side/S2/Free_Crop.py")])
+    free_crop_process = subprocess.Popen(["python", os.path.join(root, "right_side/S2/Crop.py")])
     cancel_crop_process = subprocess.Popen(["python", os.path.join(root,"right_side/S2/Cancel_Crop.py")])
     apply_crop = subprocess.Popen(["python", os.path.join(root, "right_side/S2/Apply_Crop.py")])
 

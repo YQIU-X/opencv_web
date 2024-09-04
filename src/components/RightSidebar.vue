@@ -117,8 +117,10 @@
   <div class="toggle-section" :class="{ expanded: expandedSection === 'rectCrop' }">
     <h4 @click.stop="toggleSection('rectCrop')">矩形裁剪</h4>
     <div v-if="expandedSection === 'rectCrop'" class="section-content">
-      <button @click="performAction('rectCrop')">操作按钮</button>
-      <!-- <input type="range" v-model="rectCropSlider" @input="emitZoneChanges" /> -->
+      <div class="button-row">
+        <button @click="cancelCrop">取消</button>
+        <button @click="applyCrop">应用</button>
+      </div>
     </div>
   </div>
 
@@ -126,8 +128,8 @@
     <h4 @click.stop="toggleSection('freeCrop')">自由裁剪</h4>
     <div v-if="expandedSection === 'freeCrop'" class="section-content">
       <div class="button-row">
-        <button @click="cancelFreeCrop">取消</button>
-        <button @click="applyFreeCrop">应用</button>
+        <button @click="cancelCrop">取消</button>
+        <button @click="applyCrop">应用</button>
       </div>
     </div>
   </div>
@@ -245,19 +247,17 @@ export default {
     toggleSection (section) { // 在 toggleSection 方法中，判断是否是 freeCrop 操作，并调用 setFreeCropOperation 方法。
       this.expandedSection = this.expandedSection === section ? null : section
       if (section === 'freeCrop') {
-        this.setFreeCropOperation()
+        this.setOperation('freeCrop')
+      } else if (section === 'rectCrop') {
+        this.setOperation('rectCrop')
       }
     },
-    // free crop
-    setFreeCropOperation () {
-      this.setOperation('freeCrop')
-    },
     // 应用
-    applyFreeCrop () {
+    applyCrop () {
       this.$emit('apply-Crop')
     },
     // 取消
-    cancelFreeCrop () {
+    cancelCrop () {
       this.$emit('cancel-Crop')
     },
     // selectZone (zone) {
@@ -298,10 +298,6 @@ export default {
     },
 
     // ---------------------------底部
-    performAction (action) {
-      // console.log('Perform action:', action)
-      // this.$emit('perform-action', { zone: this.selectedZone, action })
-    },
     emitZoneChanges () {
       this.$emit('zone-settings-updated', {
       })

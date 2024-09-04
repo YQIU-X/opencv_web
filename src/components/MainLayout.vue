@@ -60,7 +60,7 @@ export default {
   methods: {
     setOperation (operation) {
       this.currentOperation = operation
-      if (operation === 'freeCrop') return
+      if (operation === 'freeCrop' || operation === 'rectCrop') return
       this.isGalleryExpanded = true
       this.tempImage1 = null
       this.tempImage2 = null
@@ -92,8 +92,8 @@ export default {
       }
     },
     handleCoordinate (x, y, scaleX, scaleY) {
-      if (this.currentOperation === 'freeCrop' && this.currentImage) {
-        fetch('http://localhost:5001/free_crop', {
+      if ((this.currentOperation === 'freeCrop' || this.currentOperation === 'rectCrop') && this.currentImage) {
+        fetch('http://localhost:5001/crop', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -120,7 +120,7 @@ export default {
       }
     },
     applyCropOperation () {
-      if (this.currentOperation === 'freeCrop' && this.currentImage) {
+      if ((this.currentOperation === 'freeCrop' || this.currentOperation === 'rectCrop') && this.currentImage) {
         fetch('http://localhost:5011/apply_Crop', {
           method: 'POST',
           headers: {
@@ -347,7 +347,7 @@ export default {
       }
     },
     handleClickOutside (event) {
-      if (this.currentOperation === 'freeCrop') {
+      if (this.currentOperation === 'freeCrop' || this.currentOperation === 'rectCrop') {
         return
       }
       const bottomGallery = this.$refs.bottomGallery.$el

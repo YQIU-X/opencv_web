@@ -1,6 +1,8 @@
 <template>
   <div class="workspace"
-       @mousedown="handleMouseDown">
+       @mousedown="handleMouseDown"
+       @mousemove="handleMouseMove"
+       @mouseup="handleMouseUp">
     <img :src="Img" alt="当前图片" ref="image" draggable="false" />
   </div>
 </template>
@@ -17,11 +19,14 @@ export default {
   data () {
     return {
       clickTimeout: null,
-      lastClickTime: 0 // 上一次点击时间
+      lastClickTime: 0, // 上一次点击时间
+      isDragging: false, // 是否正在拖动
+      dragStartX: 0, // 拖动起始点X坐标
+      dragStartY: 0 // 拖动起始点Y坐标
     }
   },
   methods: {
-    sendCoordinates (event) {
+    sendCoordinates (event, type) {
       event.stopPropagation()
       const img = this.$refs.image
       const rect = img.getBoundingClientRect()
@@ -38,11 +43,15 @@ export default {
       const scaleX = naturalWidth / displayedWidth
       const scaleY = naturalHeight / displayedHeight
 
-      console.log('coordinate-clicked', x, y, scaleX, scaleY)
-      this.$emit('coordinate-clicked', x, y, scaleX, scaleY)
+      console.log(`${type} - coordinate`, x, y, scaleX, scaleY)
+      this.$emit('coordinate-clicked', x, y, scaleX, scaleY, type)
     },
     handleMouseDown (event) {
       if (event.button !== 0) return // 仅处理左键点击
+
+      this.isDragging = false // 重置拖动状态
+      this.dragStartX = event.clientX
+      this.dragStartY = event.clientY
 
       const currentTime = new Date().getTime()
       const timeSinceLastClick = currentTime - this.lastClickTime
@@ -50,15 +59,35 @@ export default {
       if (timeSinceLastClick < 300) {
         clearTimeout(this.clickTimeout) // 如果在300ms内再次点击，取消之前的单击事件
         this.lastClickTime = 0 // 重置点击时间
-        this.sendCoordinates(event) // 触发双击事件时调用 sendCoordinates 方法
+        this.sendCoordinates(event, 'double-click') // 触发双击事件时调用 sendCoordinates 方法
       } else {
         this.lastClickTime = currentTime
         // 单击时不执行任何操作
         this.clickTimeout = setTimeout(() => {
           // 300ms后认为没有双击，不执行任何操作
           this.lastClickTime = 0 // 重置点击时间
+          // this.sendCoordinates(event, 'click') // 发送单击事件坐标
         }, 300) // 延迟300ms后判断为单击事件
       }
+    },
+    handleMouseMove (event) {
+      // if (event.buttons !== 1) return // 仅处理左键按下时的移动
+
+      // const deltaX = event.clientX - this.dragStartX
+      // const deltaY = event.clientY - this.dragStartY
+
+      // if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+      //   this.isDragging = true
+      //   this.sendCoordinates(event, 'dragging') // 发送拖动事件坐标
+      //   console.log('Dragging:', deltaX, deltaY)
+      // }
+    },
+    handleMouseUp (event) {
+      // if (this.isDragging) {
+      //   this.sendCoordinates(event, 'drag-end') // 发送拖动结束事件坐标
+      //   console.log('Drag ended')
+      // }
+      // this.isDragging = false // 重置拖动状态
     }
   }
 }

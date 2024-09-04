@@ -19,7 +19,7 @@ CORS(app)
 def adjust_image():
     data = request.json
 
-    temprature = int(data.get('temprature', 0))
+    temperature = int(data.get('temperature', 0))
     hue = int(data.get('hue', 0))
     exposure = int(data.get('exposure', 0))
     contrast = int(data.get('contrast', 0))
@@ -29,7 +29,7 @@ def adjust_image():
     manager = ImageManager()
 
     img, _ = manager.get_last_image(image_id)
-    config = {"temperature": temprature, "hue": hue, "exposure": exposure, "contrast": contrast, "sharpen": sharpen, "saturation": saturation}
+    config = {"temperature": temperature, "hue": hue, "exposure": exposure, "contrast": contrast, "sharpen": sharpen, "saturation": saturation}
     manager.forward_image(image_id, img, config)  # 存图
 
     if img is None:

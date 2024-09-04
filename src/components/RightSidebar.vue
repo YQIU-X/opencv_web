@@ -32,8 +32,8 @@
       <h3>白平衡</h3>
       <div class="slider-container">
         <label>色温</label>
-        <input type="range" min="-100" max="100" v-model="temprature" @change="emitChanges" class="range-input" />
-        <input type="number" min="-100" max="100" v-model="temprature" @change="emitChanges" class="number-input" />
+        <input type="range" min="-100" max="100" v-model="temperature" @change="emitChanges" class="range-input" />
+        <input type="number" min="-100" max="100" v-model="temperature" @change="emitChanges" class="number-input" />
       </div>
       <div class="slider-container">
         <label>色调</label>
@@ -160,7 +160,7 @@
 export default {
   name: 'RightSidebar',
   props: {
-    // temprature: {
+    // temperature: {
     //   type: Number,
     //   default: 0
     // },
@@ -195,7 +195,7 @@ export default {
       histogramImage: '',
       currentPage: 1,
       expandedSection: '', // 二区域当前展开的部分
-      temprature: 0,
+      temperature: 0,
       hue: 0,
       exposure: 0,
       contrast: 0,
@@ -257,6 +257,9 @@ export default {
     // 应用
     applyCrop () {
       this.$emit('apply-Crop')
+      this.roll = 0 // 恢复初始角度
+      this.yaw = 0
+      this.pitch = 0
     },
     // 取消
     cancelCrop () {
@@ -276,7 +279,7 @@ export default {
     },
     emitChanges () {
       this.$emit('update-settings', {
-        temprature: this.temprature,
+        temperature: this.temperature,
         hue: this.hue,
         exposure: this.exposure,
         contrast: this.contrast,
@@ -314,7 +317,7 @@ export default {
     updateConfig () {
       this.$nextTick(() => {
         if (this.Image && this.Image.config) {
-          this.temprature = this.Image.config.temprature || 0
+          this.temperature = this.Image.config.temperature || 0
           this.hue = this.Image.config.hue || 0
           this.exposure = this.Image.config.exposure || 0
           this.contrast = this.Image.config.contrast || 0

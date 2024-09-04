@@ -182,6 +182,17 @@ def update_rectangle_and_lines(img, points, new_point):
     
     return img, points
 
+TEMP_NAME = 'temp.pkl'
+DATA_ROOT = ".\\src\\backend\\data"
+
+TEMP_FILE = os.path.join(DATA_ROOT, TEMP_NAME)
+
+import pickle
+
+def save_image(img):
+    with open(TEMP_FILE, 'wb') as f:
+        pickle.dump(img, f)
+
 @app.route('/crop', methods=['POST'])
 def point_callback():
     data = request.json
@@ -201,6 +212,8 @@ def point_callback():
     
     manager = ImageManager()
     current_image = manager.get_current_image(image_id)
+    src, _ = manager.get_last_image(image_id)
+    save_image(src)
     _, config = manager.get_last_image(image_id)
 
     if currentOperation == 'freeCrop':
@@ -220,7 +233,6 @@ def point_callback():
                 (width, height),  # 右下角
                 (0, height)  # 左下角
             ]
-            save_points(points)
             save_points(points)
         
             # 绘制初始矩形

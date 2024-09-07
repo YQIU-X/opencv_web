@@ -63,12 +63,6 @@
         <input type="number" min="-50" max="50" v-model="saturation" @change="emitChanges" class="number-input" />
       </div>
     </div>
-    <!-- 第三个页面的内容 -->
-    <div v-if="currentPage === 3">
-  <!-- 页面 三 的四个分区 -->
-    <div class="zone-container">
-    </div>
-  </div>
 
 <!-- 第二个页面的内容 -->
 <div v-if="currentPage === 2">
@@ -103,12 +97,12 @@
 </div>
 <div class="slider-item">
   <label>Yaw</label>
-  <input type="range" min="-180" max="180" v-model="yaw" @input="emitRotationChanges('yaw')" />
+  <input type="range" min="-300" max="300" v-model="yaw" @input="emitRotationChanges('yaw')" />
   <span>{{ yaw }}</span>
 </div>
 <div class="slider-item">
   <label>Pitch</label>
-  <input type="range" min="-180" max="180" v-model="pitch" @input="emitRotationChanges('pitch')" />
+  <input type="range" min="-300" max="300" v-model="pitch" @input="emitRotationChanges('pitch')" />
   <span>{{ pitch }}</span>
 </div>
       </div>
@@ -128,6 +122,26 @@
   <!-- </div> -->
 </div>
 
+<!-- 第三个页面的内容 -->
+<div v-if="currentPage === 3">
+  <div class="circle-container">
+    <div
+      v-for="(color, index) in circleColors"
+      :key="index"
+      :style="{ backgroundColor: color.color, backgroundImage: color.pattern ? 'url(' + color.pattern + ')' : '' }"
+      :class="['color-circle', { 'selected-circle': selectedColor === color.name }]"
+      @click="selectBrushColor(color)"
+    >
+      <span v-if="color.name === 'none'" class="slash">/</span>
+    </div>
+  </div>
+
+ <div class="brush-size-container">
+    <input type="range" id="brush-size" min="1" max="100" v-model="brushSize" @input="emitBrushSizeChange" />
+    <span class="brush-size-value">{{ brushSize }}px</span>
+  </div>
+</div>
+
     <!-- 第四个页面的内容 -->
     <div v-if="currentPage === 4">
       <!-- 添加十个按钮 -->
@@ -136,8 +150,8 @@
       <div class="button-container">
         <button class="extra-button" @click.stop="setOperation('style-transfer')">样式迁移</button>
         <button class="extra-button" @click.stop="setOperation('image-segmentation')">人像分割</button>
-        <button class="extra-button">按钮 3</button>
-        <button class="extra-button">按钮 4</button>
+        <button class="extra-button" @click.stop="setOperation('image-stitch')">图像拼接</button>
+        <button class="extra-button" @click.stop="setOperation('histogram-equalization')">直方图均衡</button>
         <button class="extra-button">按钮 5</button>
         <button class="extra-button">按钮 6</button>
         <button class="extra-button">按钮 7</button>
@@ -203,7 +217,20 @@ export default {
       saturation: 0,
       roll: 0,
       yaw: 0,
-      pitch: 0
+      pitch: 0,
+      selectedColor: 'none',
+      brushSize: 10,
+      circleColors: [
+        { name: 'none', color: 'transparent' }, // No color
+        { name: 'red', color: 'red' },
+        { name: 'green', color: 'green' },
+        { name: 'blue', color: 'blue' },
+        { name: 'yellow', color: 'yellow' },
+        { name: 'purple', color: 'purple' },
+        { name: 'black', color: 'black' },
+        { name: 'white', color: 'white' },
+        { name: 'mosaic', color: 'transparent', pattern: require('../assets/OIP-C.jpg') } // Mosaic brush with a pattern
+      ]
     }
   },
   watch: {
@@ -224,9 +251,23 @@ export default {
     }
   },
   methods: {
+    selectBrushColor (color) {
+      this.selectedColor = color.name
+      if (this.selectedColor !== 'none') {
+        console.log('selectBrushColor', color.name)
+        this.setOperation('paint') // 若所选颜色不是 'none'，则将操作设置为 'paint'
+      }
+      this.$emit('brush-color-changed', color.name) // Emit event for the parent component
+    },
+    emitBrushSizeChange () {
+      this.$emit('brush-size-changed', this.brushSize) // Emit brush size change event
+    },
     selectButton (buttonNumber) {
       this.selectedButton = buttonNumber // 设置当前选中的按钮
       this.currentPage = buttonNumber // 根据选中的按钮更新 currentPage
+      this.selectedColor = 'none'
+      this.brushSize = 10
+      this.setOperation(null)
     },
     // ---------------------------二区域
     toggleSection (section) { // 在 toggleSection 方法中，判断是否是 freeCrop 操作，并调用 setFreeCropOperation 方法。
@@ -274,7 +315,6 @@ export default {
     // },
     // ---------------------------四区域
     setOperation (operation) {
-      this.operation = operation
       this.$emit('set-operation', operation)
     },
     emitChanges () {
@@ -594,6 +634,62 @@ h3{
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
+}
+/*颜色 */
+.circle-container {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+.color-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.slash {
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 30px;
+}
+
+.selected-circle {
+  border: 2px solid #ffcc00; /* Highlight color when selected */
+}
+
+/* Mosaic brush specific style, showing as a light gray circle with a pattern */
+.color-circle[style*="mosaic-pattern.png"] {
+  background-image: url('../assets/OIP-C.jpg'); /* Mosaic texture */
+}
+
+/* 大小滑动条 */
+.brush-size-container {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.brush-size-container label {
+  font-size: 14px;
+  margin-right: 10px; /* 在标签和滑动条之间添加一些间距 */
+}
+
+.brush-size-container input[type="range"] {
+  flex: 1; /* 让滑动条占据剩余的空间 */
+  margin-right: 10px;
+}
+
+.brush-size-value {
+  font-size: 14px;
+  white-space: nowrap; /* 防止换行 */
 }
 
 </style>

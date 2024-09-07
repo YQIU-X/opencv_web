@@ -44,7 +44,11 @@ export default {
       const scaleY = naturalHeight / displayedHeight
 
       console.log(`${type} - coordinate`, x, y, scaleX, scaleY)
-      this.$emit('coordinate-clicked', x, y, scaleX, scaleY, type)
+      if (type === 'double-click') {
+        this.$emit('coordinate-clicked', x, y, scaleX, scaleY, type)
+      } else if (type === 'dragging' || type === 'drag-end') {
+        this.$emit('draw-clicked', x, y, scaleX, scaleY, type)
+      }
     },
     handleMouseDown (event) {
       if (event.button !== 0) return // 仅处理左键点击
@@ -71,23 +75,23 @@ export default {
       }
     },
     handleMouseMove (event) {
-      // if (event.buttons !== 1) return // 仅处理左键按下时的移动
+      if (event.buttons !== 1) return // 仅处理左键按下时的移动
 
-      // const deltaX = event.clientX - this.dragStartX
-      // const deltaY = event.clientY - this.dragStartY
+      const deltaX = event.clientX - this.dragStartX
+      const deltaY = event.clientY - this.dragStartY
 
-      // if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
-      //   this.isDragging = true
-      //   this.sendCoordinates(event, 'dragging') // 发送拖动事件坐标
-      //   console.log('Dragging:', deltaX, deltaY)
-      // }
+      if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+        this.isDragging = true
+        this.sendCoordinates(event, 'dragging') // 发送拖动事件坐标
+        console.log('Dragging:', deltaX, deltaY)
+      }
     },
     handleMouseUp (event) {
-      // if (this.isDragging) {
-      //   this.sendCoordinates(event, 'drag-end') // 发送拖动结束事件坐标
-      //   console.log('Drag ended')
-      // }
-      // this.isDragging = false // 重置拖动状态
+      if (this.isDragging) {
+        this.sendCoordinates(event, 'drag-end') // 发送拖动结束事件坐标
+        console.log('Drag ended')
+      }
+      this.isDragging = false // 重置拖动状态
     }
   }
 }

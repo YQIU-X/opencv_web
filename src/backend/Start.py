@@ -15,8 +15,11 @@ def run_scripts():
     apply_crop_process = subprocess.Popen(["python", os.path.join(root, "right_side/S2/Apply_Crop.py")])
     update_rotation_process = subprocess.Popen(["python", os.path.join(root, "right_side/S2/Update_Rotation.py")])
 
+    draw_process = subprocess.Popen(["python", os.path.join(root, "right_side/S3/Draw.py")])
+
     style_migration_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Style_Migration.py")])
     seg_human_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Seg_Human.py")])
+    administrator_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Administrator.py")])
 
     next_img_process = subprocess.Popen(["python", os.path.join(root,"right_side/Next_Image.py")])
     undo_action_process = subprocess.Popen(["python", os.path.join(root, "right_side/Undo_Action.py")])
@@ -37,6 +40,9 @@ def run_scripts():
     process.append(cancel_crop_process)
     process.append(apply_crop_process)
     process.append(update_rotation_process)
+    process.append(administrator_process)
+    process.append(draw_process)
+
 
     print("Starting scripts...")
     try:

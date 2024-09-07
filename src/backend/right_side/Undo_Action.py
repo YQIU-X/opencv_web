@@ -20,7 +20,7 @@ def undo_action():
     manager = ImageManager()
 
     img, config = manager.back_image(image_id)
-    
+    print(len(manager.data[1]['deque']))
 
     current_image = Apply_Config(img, config)
     manager.set_current_image(image_id, current_image)

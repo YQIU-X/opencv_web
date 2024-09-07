@@ -48,8 +48,8 @@ class ImageManager:
     def add_image(self, id, img, config={"temperature": 0, "hue": 0, "exposure": 0, "contrast": 0}):
         """添加一张新图像"""
         dq = deque()
-        dq.append({"img": img, "config": config})
-        self.data[id] = {"current": img, "deque": dq}
+        dq.append({"img": img.copy(), "config": config.copy()})
+        self.data[id] = {"current": img.copy(), "deque": dq}
         
     def get_last_image(self, id):
         image_dic = self.data[id]
@@ -57,12 +57,12 @@ class ImageManager:
         if not image_dic["deque"]:
             raise IndexError("Deque is empty")
         item = image_dic["deque"][-1]
-        return item["img"], item["config"]
+        return item["img"].copy(), item["config"].copy()
 
     def get_current_image(self, id):
         """获取现在图像"""
         image_dic = self.data[id]
-        return image_dic["current"]
+        return image_dic["current"].copy()
 
 
     def get_next_image_id(self):
@@ -81,7 +81,7 @@ class ImageManager:
     def set_current_image(self, id, img):
         """获取现在图像"""
         image_dic = self.data[id]
-        image_dic["current"] = img
+        image_dic["current"] = img.copy()
 
     def delete_image(self, id):
         del self.data[id]
@@ -91,12 +91,12 @@ class ImageManager:
         image_dic = self.data[id]
         if len(image_dic["deque"]) == 1:
             item = image_dic["deque"][-1]
-            return item["img"], item["config"]
+            return item["img"].copy(), item["config"].copy()
         else:
             self.data[id]['deque'].pop()
             image_dic = self.data[id]
             item = image_dic["deque"][-1]
-            return item["img"], item["config"]
+            return item["img"].copy(), item["config"].copy()
         
 
     def forward_image(self, id, img, config):

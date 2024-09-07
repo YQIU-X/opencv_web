@@ -136,7 +136,8 @@ def style_migration():
     new_img_id = manager.get_next_image_id()
     manager.add_image(new_img_id, output_image)
     manager.save_images()
-    _, config = manager.get_last_image(new_img_id)
+    
+    config = {"temperature": 0, "hue": 0, "exposure": 0, "contrast": 0, "sharpen": 0, "saturation": 0}
 
     img_base64 = image_2_base64(output_image)
     return jsonify({"id": new_img_id, "src": img_base64, "config": config})

@@ -13,7 +13,7 @@ app = Flask(__name__)
 CORS(app)
 
 @app.route('/seg_human', methods=['POST'])
-def adjust_image():
+def seg_human():
     # Get the image and settings from the request
     data = request.json
     seg_img_id = int(data['seg_img_id'])
@@ -40,7 +40,8 @@ def adjust_image():
     new_img_id = manager.get_next_image_id()
     manager.add_image(new_img_id, adjusted_image)
     manager.save_images()
-    _, config = manager.get_last_image(new_img_id)
+
+    config = {"temperature": 0, "hue": 0, "exposure": 0, "contrast": 0, "sharpen": 0, "saturation": 0}
     img_base64 = image_2_base64(adjusted_image)
 
     return jsonify({"id": new_img_id, "src": img_base64, "config": config})

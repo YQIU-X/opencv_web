@@ -8,6 +8,7 @@
       <Workspace
         :Img="currentImage ? currentImage.src : ''"
         @coordinate-clicked="handleCoordinate"
+        @draw-clicked="handleDraw"
       />
       <BottomGallery
         ref="bottomGallery"
@@ -30,7 +31,8 @@
       @undo-action="undoAction"
       @next-image="nextImage"
       @confirm-changes="handleConfirmChanges"
-
+      @brush-size-changed="handleBrushSizeChange"
+      @brush-color-changed="handleBrushColorChange"
       @update-rotation="handleUpdateRotation"
     />
   </div>
@@ -56,10 +58,62 @@ export default {
       isGalleryExpanded: false, // 控制BottomGallery的高度
       tempImage1: null, // 存储第一张图片
       tempImage2: null, // 存储第二张图片
-      currentOperation: null // 记录当前操作类型
+      currentOperation: null, // 记录当前操作类型
+      paint_color: null, // 画笔颜色
+      paint_size: 10, // 画笔大小
+      points: [] // 用来存点
     }
   },
   methods: {
+    handleDraw (x, y, scaleX, scaleY, type) {
+      console.log('handleDraw')
+      console.log(this.currentOperation)
+
+      if (this.currentOperation !== 'paint') return
+
+      if (type === 'dragging') {
+        // 当拖动时，将x, y存储到points数组中
+        this.points.push({ x, y })
+      } else if (type === 'drag-end') {
+        console.log('this.paint_color', this.paint_color)
+        fetch('http://localhost:5014/draw', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id: this.currentImage.id,
+            points: this.points,
+            paint_color: this.paint_color,
+            paint_size: this.paint_size,
+            scaleX: scaleX,
+            scaleY: scaleY,
+            type: type
+          })
+        })
+          .then(response => response.json())
+          .then(data => {
+            this.currentImage = {
+              id: data.id,
+              src: `data:image/jpeg;base64,${data.src}`,
+              config: data.config
+            }
+            this.select_image(this.currentImage)
+            this.points = []
+          })
+          .catch(error => {
+            console.error('Error drawing:', error)
+          })
+      }
+    },
+    handleBrushSizeChange (size) {
+      console.log('handleBrushSizeChange', size)
+      this.paint_size = size
+    },
+    handleBrushColorChange (color) {
+      console.log('handleBrushColorChange', color)
+      this.paint_color = color
+    },
     handleUpdateRotation (roll, yaw, pitch) {
       fetch('http://localhost:5012/update_rotation', {
         method: 'POST',
@@ -88,7 +142,7 @@ export default {
     },
     setOperation (operation) {
       this.currentOperation = operation
-      if (operation === 'freeCrop' || operation === 'rectCrop') return
+      if (operation === 'freeCrop' || operation === 'rectCrop' || operation === 'paint') return
       this.isGalleryExpanded = true
       this.tempImage1 = null
       this.tempImage2 = null
@@ -119,7 +173,7 @@ export default {
           })
       }
     },
-    handleCoordinate (x, y, scaleX, scaleY) {
+    handleCoordinate (x, y, scaleX, scaleY, type) {
       if ((this.currentOperation === 'freeCrop' || this.currentOperation === 'rectCrop') && this.currentImage) {
         fetch('http://localhost:5001/crop', {
           method: 'POST',
@@ -181,11 +235,63 @@ export default {
       if (!this.tempImage1) {
         this.tempImage1 = image
       } else if (!this.tempImage2) {
-        this.tempImage2 = image
+        if (this.currentOperation === 'histogram-equalization') {
+          this.tempImage1 = image
+        } else {
+          this.tempImage2 = image
+        }
       } else {
         this.tempImage1 = image
         this.tempImage2 = null
       }
+    },
+    handleConfirmChanges () {
+      console.log(this.currentOperation)
+      if (this.currentOperation === 'image-segmentation' && this.tempImage1) {
+        this.applyImageSegmentation()
+      }
+      if (this.currentOperation === 'style-transfer' && this.tempImage1 && this.tempImage2) {
+        this.applyStyleTransfer()
+      }
+      if ((this.currentOperation === 'image-stitch' && this.tempImage1 && this.tempImage2) ||
+       (this.currentOperation === 'histogram-equalization' && this.tempImage1)) {
+        console.log('handleConfirmChanges')
+        this.applyWUDILE(this.currentOperation)
+      }
+      this.tempImage1 = null
+      this.tempImage2 = null
+    },
+    applyWUDILE (operation) {
+      fetch('http://localhost:5013/administrator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          Image1: this.tempImage1 ? this.tempImage1.id : null,
+          Image2: this.tempImage2 ? this.tempImage2.id : null,
+          operation: operation
+        })
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok')
+          }
+          return response.json()
+        })
+        .then(data => {
+          this.currentImage = {
+            id: data.id,
+            src: `data:image/jpeg;base64,${data.src}`,
+            config: data.config
+          }
+          this.select_image(this.currentImage)
+          this.$refs.bottomGallery.updateImages()
+          this.clean()
+        })
+        .catch(error => {
+          console.error('Error updating image:', error)
+        })
     },
     applyStyleTransfer () {
       if (this.tempImage1 && this.tempImage2) {
@@ -312,12 +418,12 @@ export default {
     clean () {
       this.tempImage1 = null
       this.tempImage2 = null
-      this.currentOperation = null
+      // this.currentOperation = null
       this.isGalleryExpanded = false
     },
     undoAction () {
       this.clean()
-      this.operation = null
+      // this.currentOperation = null
       if (this.currentImage && this.currentImage.id) {
         fetch('http://localhost:5004/undo_action', {
           method: 'POST',
@@ -366,20 +472,8 @@ export default {
           })
       }
     },
-    handleConfirmChanges () {
-      if (this.currentOperation === 'image-segmentation' && this.tempImage1) {
-        this.applyImageSegmentation()
-        this.tempImage1 = null
-        this.tempImage2 = null
-      }
-      if (this.currentOperation === 'style-transfer' && this.tempImage1 && this.tempImage2) {
-        this.applyStyleTransfer()
-        this.tempImage1 = null
-        this.tempImage2 = null
-      }
-    },
     handleClickOutside (event) {
-      if (this.currentOperation === 'freeCrop' || this.currentOperation === 'rectCrop') {
+      if (this.currentOperation === 'freeCrop' || this.currentOperation === 'rectCrop' || this.currentOperation === 'paint') {
         return
       }
       const bottomGallery = this.$refs.bottomGallery.$el

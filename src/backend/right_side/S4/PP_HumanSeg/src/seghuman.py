@@ -15,7 +15,7 @@ class Args:
         self.bg_img_path = None
         self.img_path = None
         self.save_dir = None
-        self.config = 'src\\backend\\PP_HumanSeg\\inference_models\\portrait_pp_humansegv2_lite_256x144_inference_model_with_softmax\\deploy.yaml'
+        self.config = 'src\\backend\\right_side\\S4\\PP_HumanSeg\\inference_models\\portrait_pp_humansegv2_lite_256x144_inference_model_with_softmax\\deploy.yaml'
 
 def get_bg_img(bg_img_path, img_shape):
     if bg_img_path is None:

@@ -23,3 +23,9 @@
 # PORT: http://localhost:5011/apply_Crop
 
 # http://localhost:5012/update_rotation
+
+# http://localhost:5013/administrator
+
+# http://localhost:5014/draw
+
+#

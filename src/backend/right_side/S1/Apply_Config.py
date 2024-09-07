@@ -108,11 +108,17 @@ def adjust_saturation(image, val):
     return adjusted_image
 
 def Apply_Config(img, config):
-    img = color_temperature(img, config["temperature"])
-    img = adjust_hue(img, config["hue"])
-    img = adjust_exposure(img, config["exposure"])
-    img = adjust_contrast(img, config["contrast"])
-    img = adjust_sharpen(img, config["sharpen"])
-    img = adjust_saturation(img, config["saturation"])
+    if(config["temperature"] != 0):
+        img = color_temperature(img, config["temperature"])
+    if(config["hue"] != 0):
+        img = adjust_hue(img, config["hue"])
+    if(config["exposure"]!= 0):
+        img = adjust_exposure(img, config["exposure"])
+    if(config["contrast"]!= 0):
+        img = adjust_contrast(img, config["contrast"])
+    if(config["sharpen"]!= 0):
+        img = adjust_sharpen(img, config["sharpen"])
+    if(config["saturation"]!= 0):
+        img = adjust_saturation(img, config["saturation"])
     
     return img

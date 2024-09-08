@@ -34,6 +34,7 @@
       @brush-size-changed="handleBrushSizeChange"
       @brush-color-changed="handleBrushColorChange"
       @update-rotation="handleUpdateRotation"
+      @apply-filter="applyFilter"
     />
   </div>
 </template>
@@ -65,6 +66,42 @@ export default {
     }
   },
   methods: {
+    applyFilter (filterName) {
+      if (!this.currentImage || !this.currentImage.id) {
+        console.error('No image selected or image ID missing')
+        return
+      }
+      // 发起POST请求，将图片ID和滤镜名称传递到后端
+      fetch('http://localhost:5015/apply_filter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          image_id: this.currentImage.id, // 传递当前图像的ID
+          filter: filterName // 传递选中的滤镜名称
+        })
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok')
+          }
+          return response.json()
+        })
+        .then(data => {
+          // 更新当前图片，假设后端返回处理后的图片
+          this.currentImage = {
+            id: data.id,
+            src: `data:image/jpeg;base64,${data.src}`, // 假设后端返回的是base64编码的图片数据
+            config: data.config
+          }
+          this.select_image(this.currentImage) // 更新图片显示
+          this.$refs.bottomGallery.updateImages() // 更新底部画廊
+        })
+        .catch(error => {
+          console.error('Error applying filter:', error)
+        })
+    },
     handleDraw (x, y, scaleX, scaleY, type) {
       console.log('handleDraw')
       console.log(this.currentOperation)

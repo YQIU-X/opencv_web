@@ -16,6 +16,7 @@ def run_scripts():
     update_rotation_process = subprocess.Popen(["python", os.path.join(root, "right_side/S2/Update_Rotation.py")])
 
     draw_process = subprocess.Popen(["python", os.path.join(root, "right_side/S3/Draw.py")])
+    apply_filter_process = subprocess.Popen(["python", os.path.join(root, "right_side/S3/Apply_Filter.py")])
 
     style_migration_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Style_Migration.py")])
     seg_human_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Seg_Human.py")])
@@ -42,6 +43,7 @@ def run_scripts():
     process.append(update_rotation_process)
     process.append(administrator_process)
     process.append(draw_process)
+    process.append(apply_filter_process)
 
 
     print("Starting scripts...")

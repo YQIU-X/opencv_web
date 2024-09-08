@@ -102,7 +102,8 @@ class StyleTransfer:
         _, styles_Y = self.extract_features(style_X)
         return style_X, styles_Y
 
-    def train(self, lr=0.3, num_epochs=500, lr_decay_epoch=50):
+    def train(self, lr=0.3, num_epochs=700, lr_decay_epoch=50):
+        print(self.device)
         content_X, contents_Y = self.get_contents()
         _, styles_Y = self.get_styles()
 
@@ -120,6 +121,7 @@ class StyleTransfer:
             l.backward()
             trainer.step()
             scheduler.step()
+            print(epoch)
         return self.postprocess(gen_img)
 
 @app.route('/style_migration', methods=['POST'])

@@ -1,6 +1,3 @@
-
-# PORT: http://localhost:5003/fetch_histogram
-
 from flask import Flask, request, jsonify
 import cv2
 import numpy as np
@@ -20,30 +17,48 @@ app = Flask(__name__)
 CORS(app)
 
 def drawHist(image):
-    colors = ('b', 'g', 'r')
-    
-    # Create a figure with a grey background
-    fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor('#2c2c2c')  # Set the figure background to grey
-    ax.set_facecolor('#2c2c2c')  # Set the axis background to grey
+    # 自动识别图像的类型
+    if len(image.shape) == 2 or image.shape[2] == 1:  # 如果是灰度图
+        # Create a figure with a grey background
+        fig, ax = plt.subplots(figsize=(10, 6))
+        fig.patch.set_facecolor('#2c2c2c')  # Set the figure background to grey
+        ax.set_facecolor('#2c2c2c')  # Set the axis background to grey
 
-    for i, color in enumerate(colors):
-        hist = cv2.calcHist([image], [i], None, [256], [0, 256])
+        # Compute the histogram for grayscale image
+        hist = cv2.calcHist([image], [0], None, [256], [0, 256])
         hist = gaussian_filter1d(hist, sigma=2)  # Apply smoothing
-        
-        # Fill the area under the curve with color
-        ax.fill_between(range(256), hist.ravel(), color=color, alpha=0.3)
-        
-        # Plot the curve with a white border effect
-        ax.plot(hist, color=color, linewidth=2, alpha=0.8,
+
+        # Plot the histogram with a white border effect
+        ax.fill_between(range(256), hist.ravel(), color='gray', alpha=0.3)
+        ax.plot(hist, color='gray', linewidth=2, alpha=0.8,
                 path_effects=[patheffects.Stroke(linewidth=4, foreground='white'),
                               patheffects.Normal()])
 
-    ax.set_xlim([0, 256])
-    
-    # Remove grid, axis, and labels
-    ax.grid(False)
-    ax.axis('off')
+        ax.set_xlim([0, 256])
+        ax.grid(False)
+        ax.axis('off')
+
+    else:  # 如果是彩色图像 (BGR)
+        colors = ('b', 'g', 'r')
+        # Create a figure with a grey background
+        fig, ax = plt.subplots(figsize=(10, 6))
+        fig.patch.set_facecolor('#2c2c2c')  # Set the figure background to grey
+        ax.set_facecolor('#2c2c2c')  # Set the axis background to grey
+
+        for i, color in enumerate(colors):
+            hist = cv2.calcHist([image], [i], None, [256], [0, 256])
+            hist = gaussian_filter1d(hist, sigma=2)  # Apply smoothing
+
+            # Fill the area under the curve with color
+            ax.fill_between(range(256), hist.ravel(), color=color, alpha=0.3)
+            # Plot the curve with a white border effect
+            ax.plot(hist, color=color, linewidth=2, alpha=0.8,
+                    path_effects=[patheffects.Stroke(linewidth=4, foreground='white'),
+                                  patheffects.Normal()])
+
+        ax.set_xlim([0, 256])
+        ax.grid(False)
+        ax.axis('off')
 
     # Save the histogram image to a memory file
     buf = BytesIO()
@@ -63,7 +78,6 @@ def upload_image():
     data = request.get_json()
     image_id_value = int(data.get('id'))
 
-
     if isinstance(image_id_value, str):
         image_id = int(image_id_value, 0)
     else:
@@ -71,6 +85,10 @@ def upload_image():
     print("image_id_value", image_id)
     manager = ImageManager()
     img = manager.get_current_image(image_id)
+
+    if img is None:
+        return jsonify({'error': 'Image not found'}), 404
+
     hist_img = drawHist(img)
 
     encoded_image = image_2_base64(hist_img)

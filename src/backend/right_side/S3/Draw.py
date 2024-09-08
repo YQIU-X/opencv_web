@@ -122,7 +122,6 @@ def draw():
         
     encoded_image = image_2_base64(img)
 
-    # 返回响应
     return jsonify({"id": image_id, "src": encoded_image, "config": config})
 
 if __name__ == '__main__':

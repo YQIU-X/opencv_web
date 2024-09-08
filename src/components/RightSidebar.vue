@@ -136,9 +136,21 @@
     </div>
   </div>
 
- <div class="brush-size-container">
+  <div class="brush-size-container">
     <input type="range" id="brush-size" min="1" max="100" v-model="brushSize" @input="emitBrushSizeChange" />
     <span class="brush-size-value">{{ brushSize }}px</span>
+  </div>
+
+  <!-- 新增的滤镜按钮部分 -->
+  <div class="filter-buttons-container">
+    <div class="filter-button-row">
+      <button @click="applyFilter('relief')" class="filter-button">浮雕</button>
+      <button @click="applyFilter('grayscale')" class="filter-button">黑白</button>
+    </div>
+    <div class="filter-button-row">
+      <button @click="applyFilter('filter3')" class="filter-button">滤镜 3</button>
+      <button @click="applyFilter('filter4')" class="filter-button">滤镜 4</button>
+    </div>
   </div>
 </div>
 
@@ -251,6 +263,10 @@ export default {
     }
   },
   methods: {
+    applyFilter (filterName) {
+      console.log(`Applying filter: ${filterName}`)
+      this.$emit('apply-filter', filterName) // 向父组件发送应用滤镜的事件
+    },
     selectBrushColor (color) {
       this.selectedColor = color.name
       if (this.selectedColor !== 'none') {
@@ -690,6 +706,36 @@ h3{
 .brush-size-value {
   font-size: 14px;
   white-space: nowrap; /* 防止换行 */
+}
+/*滤镜 */
+.filter-buttons-container {
+  margin-top: 20px;
+}
+
+.filter-button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.filter-button {
+  flex: 1;
+  padding: 10px;
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border: 1px solid #2c2c2c;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.filter-button:not(:last-child) {
+  margin-right: 10px;
+}
+
+.filter-button:hover {
+  background-color: #4a4a4a;
 }
 
 </style>

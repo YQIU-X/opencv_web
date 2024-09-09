@@ -66,13 +66,15 @@ export default {
       currentOperation: null, // 记录当前操作类型
       paint_color: null, // 画笔颜色
       paint_size: 10, // 画笔大小
-      points: [] // 用来存点
+      points: [], // 用来存点
+      images: [] // 用来存工作台图片
     }
   },
   methods: {
     handleWorkspaceClick () {
       console.log('工作台按钮被点击了，执行相关逻辑')
       this.isGalleryExpanded = true
+      this.images = []
       this.currentOperation = 'workspace'
     },
     applyFilter (filterName) {
@@ -277,7 +279,10 @@ export default {
     },
     selectTempImage (image) {
       if (this.currentOperation === null) return
-
+      if (this.currentOperation === 'workspace') {
+        this.images.push(image)
+        return
+      }
       if (!this.tempImage1) {
         this.tempImage1 = image
       } else if (!this.tempImage2) {
@@ -293,6 +298,18 @@ export default {
     },
     handleConfirmChanges () {
       console.log(this.currentOperation)
+      if (this.currentOperation === 'workspace' && this.images.length !== 0) {
+        const imagesData = JSON.stringify(this.images)
+        const encodedImages = encodeURIComponent(imagesData) // 对数据进行编码
+
+        // 打开新页面，并通过查询字符串传递数据
+        const newWindow = window.open(`/new-page?images=${encodedImages}`, '_blank')
+        if (newWindow) {
+          newWindow.focus() // 将新页面置于前台
+        }
+        return
+      }
+
       if (this.currentOperation === 'image-segmentation' && this.tempImage1) {
         this.applyImageSegmentation()
       }
@@ -540,6 +557,7 @@ export default {
   },
   mounted () {
     this.$refs.bottomGallery.updateImages()
+    this.paint_color = null
     document.addEventListener('click', this.handleClickOutside)
   },
   beforeDestroy () {

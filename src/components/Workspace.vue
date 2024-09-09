@@ -7,8 +7,8 @@
   >
     <img :src="Img" alt="当前图片" ref="image" draggable="false" />
     <!-- 显示自定义的圆圈作为鼠标指针 -->
-    <div
-      v-if="selectedColor !== 'none'"
+     <div
+      v-if="selectedColor && selectedColor !== 'none'"
       :style="brushStyle"
       class="brush-circle"
     ></div>

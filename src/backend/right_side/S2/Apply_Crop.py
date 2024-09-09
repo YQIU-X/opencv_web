@@ -15,7 +15,7 @@ from src.backend.right_side.S1.Apply_Config import Apply_Config
 app = Flask(__name__)
 CORS(app)
 
-# 配置常量
+
 DATA_ROOT = "./src/backend/data"
 POINTS_NAME = 'points.json'
 POINTS_FILE = os.path.join(DATA_ROOT, POINTS_NAME)

@@ -25,65 +25,63 @@ color_map = {
     'green': (0, 255, 0),
     'blue': (255, 0, 0),
     'yellow': (0, 255, 255),
-    'purple': (255, 0, 255),
     'black': (0, 0, 0),
     'white': (255, 255, 255),
+    'recovery': None,
     'mosaic': None  # 'mosaic' 的处理可以自定义
 }
 
 def apply_mosaic_to_line(image, points, mosaic_size, thickness):
     """在给定的点组成的不规则区域上应用马赛克效果"""
-    # 创建拷贝以避免修改原始图像
     temp_image = image.copy()
-
-    # 创建一个掩码图像，初始为全零
     mask = np.zeros_like(image)
-
-    # 遍历所有点，在每个点位置绘制一个半径为 thickness 的圆
     for pt in points:
-        cv2.circle(mask, tuple(pt), radius=thickness, color=(255, 255, 255), thickness=-1)  # 填充的圆
+        cv2.circle(mask, tuple(pt), radius=thickness, color=(255, 255, 255), thickness=-1)
 
-    # 获取掩码区域（即圆形所覆盖的所有点）
     mask_area = np.where(mask[:, :, 0] == 255)
 
     if len(mask_area[0]) == 0:
-        return image  # 如果没有找到有效区域，直接返回原图
+        return image
 
-    # 提取掩码区域的像素点，并将其缩小到马赛克尺寸
     mosaic_image = temp_image.copy()
-
-    # 获取这些点对应的像素值
     mosaic_image[mask_area[0], mask_area[1]] = temp_image[mask_area[0], mask_area[1]]
-
-    # 提取掩码区域并应用马赛克效果
     small = cv2.resize(mosaic_image, (mosaic_image.shape[1] // 20, mosaic_image.shape[0] // 20), interpolation=cv2.INTER_LINEAR)
-
-    # 再放大回原来的尺寸
     mosaic = cv2.resize(small, (mosaic_image.shape[1], mosaic_image.shape[0]), interpolation=cv2.INTER_NEAREST)
-
-    # 将马赛克效果应用到原图的掩码区域
     temp_image[mask_area[0], mask_area[1]] = mosaic[mask_area[0], mask_area[1]]
 
     return temp_image
 
+def inpaint_image(temp_image, points, paint_size):
+    
+    img_mask = temp_image.copy()
+    inpaintMask = np.zeros(temp_image.shape[:2], np.uint8)
+
+    for point in points:
+        cv2.circle(inpaintMask, point, paint_size, 255, -1)
+
+    if len(points) > 100:
+        res = cv2.inpaint(src=img_mask, inpaintMask=inpaintMask, inpaintRadius=paint_size, flags=cv2.INPAINT_NS)
+        method_used = 'NS Technique'
+    else:
+        res = cv2.inpaint(src=img_mask, inpaintMask=inpaintMask, inpaintRadius=paint_size, flags=cv2.INPAINT_TELEA)
+        method_used = 'FMM'
+    
+    return res
+
 def draw_lines_on_image(image, points, paint_color, paint_size):
-    # 创建图像副本
     temp_image = image.copy()
 
-    # 检查颜色是否在映射表中
     if paint_color not in color_map:
         print(f"Color '{paint_color}' is not valid.")
         return temp_image
 
-    # 获取对应的颜色BGR值
     color = color_map[paint_color]
 
     if paint_color == 'mosaic':
-            # 如果选择了马赛克模式，应用马赛克处理
-            temp_image = apply_mosaic_to_line(temp_image, points, mosaic_size=paint_size, thickness=paint_size)
+        temp_image = apply_mosaic_to_line(temp_image, points, mosaic_size=paint_size, thickness=paint_size)
+    elif paint_color == 'recovery':
+        temp_image = inpaint_image(temp_image, points, paint_size)
     else:
-        # 否则直接画线
-        # 遍历points，将相邻点连接成线
         for i in range(len(points) - 1):
             pt1 = tuple(points[i])
             pt2 = tuple(points[i + 1])
@@ -96,7 +94,7 @@ def draw_lines_on_image(image, points, paint_color, paint_size):
 @app.route('/draw', methods=['OPTIONS', 'POST'])
 def draw():
     if request.method == 'OPTIONS':
-        return '', 200  # 处理OPTIONS预检请求，返回状态200
+        return '', 200
     data = request.json
     
     image_id = data.get('id')
@@ -107,7 +105,6 @@ def draw():
     scaleY = float(data.get('scaleY', 1.0))
     points = data.get('points')
 
-    # 确保points是一个列表，进行坐标缩放
     scaled_points = [(int(point['x'] * scaleX), int(point['y'] * scaleY)) for point in points]
 
     manager = ImageManager()

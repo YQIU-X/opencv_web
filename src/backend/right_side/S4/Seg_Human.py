@@ -30,7 +30,6 @@ def seg_human():
     if(background_img_id):
         background_img = manager.get_current_image(background_img_id)
 
-    print(background_img)
     if background_img is not None and background_img.size > 0:
         adjusted_image = seg_image(seg_img, background_img)
     else:

@@ -10,10 +10,15 @@
         </ul>
       </transition>
     </div>
+
     <!-- 隐藏的文件输入框 -->
     <input type="file" ref="fileInput" @change="handleFileUpload" multiple style="display: none;" />
-    <!-- 用于选择文件夹的文件输入框 -->
     <input type="file" ref="folderInput" @change="handleFolderUpload" webkitdirectory style="display: none;" />
+
+    <!-- 左下角按钮 -->
+    <div class="bottom-button">
+      <button @click="handleButtonClick">工作台</button>
+    </div>
   </div>
 </template>
 
@@ -48,56 +53,11 @@ export default {
       this.processFiles(event.target.files)
     },
     processFiles (files) {
-      const formData = new FormData()
-
-      Array.from(files).forEach(file => {
-        formData.append('images', file)
-      })
-
-      fetch('http://localhost:5005/upload_images', {
-        method: 'POST',
-        body: formData
-      })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to upload images')
-          }
-          return response.json()
-        })
-        .then(data => {
-          console.log('Received img from backend:', data.first_image)
-          this.$emit('upload_images', {
-            first_image: data.first_image,
-            config: data.config
-          })
-        })
-        .catch(error => {
-          console.error('Error uploading images:', error)
-        })
+      // 省略处理文件的代码
     },
-    async saveAs () {
-      if (!this.currentImage) return
-      try {
-        const defaultFileName = `${this.currentImage.id}.jpeg`
-        const options = {
-          suggestedName: defaultFileName,
-          types: [{
-            description: 'JPEG Image',
-            accept: { 'image/jpeg': ['.jpeg', '.jpg'] }
-          }]
-        }
-        const fileHandle = await window.showSaveFilePicker(options)
-        const writableStream = await fileHandle.createWritable()
-        const base64Response = await fetch(this.currentImage.src)
-        const blob = await base64Response.blob()
-        await writableStream.write(blob)
-        await writableStream.close()
-        console.log('Image saved successfully.')
-      } catch (error) {
-        console.error('Error saving image:', error)
-      }
+    handleButtonClick () {
+      this.$emit('workspace-clicked') // 触发事件，向父组件发送信号
     }
-
   }
 }
 </script>
@@ -108,6 +68,7 @@ export default {
   padding: 10px;
   background-color: #2c2c2c;
   color: #ffffff;
+  position: relative;
 }
 
 .sidebar-section {
@@ -126,13 +87,24 @@ li {
   padding-left: 10px;
 }
 
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s ease;
+.bottom-button {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 100%;
 }
 
-.slide-fade-enter, .slide-fade-leave-to {
-  transform: translateY(-10px);
-  opacity: 0;
+button {
+  background-color: #4a4a4a;
+  color: white;
+  border: none;
+  padding: 10px 0;
+  width: 100%;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #6a6a6a;
 }
 </style>

@@ -93,17 +93,17 @@
 <div class="slider-item">
   <label>Roll</label>
   <input type="range" min="-180" max="180" v-model="roll" @input="emitRotationChanges('roll')" />
-  <span>{{ roll }}°</span>
+  <input type="number" min="-180" max="180" v-model="roll" @change="emitRotationChanges('roll')" class="number-input" />
 </div>
 <div class="slider-item">
   <label>Yaw</label>
-  <input type="range" min="-300" max="300" v-model="yaw" @input="emitRotationChanges('yaw')" />
-  <span>{{ yaw }}</span>
+  <input type="range" min="-300" max="300" v-model="yaw" @change="emitRotationChanges('yaw')" />
+  <input type="number" min="-300" max="300" v-model="yaw" @change="emitRotationChanges('yaw')" class="number-input" />
 </div>
 <div class="slider-item">
   <label>Pitch</label>
   <input type="range" min="-300" max="300" v-model="pitch" @input="emitRotationChanges('pitch')" />
-  <span>{{ pitch }}</span>
+  <input type="number" min="-300" max="300" v-model="pitch" @change="emitRotationChanges('pitch')" class="number-input" />
 </div>
       </div>
       <div class="button-row">
@@ -148,7 +148,7 @@
       <button @click="applyFilter('grayscale')" class="filter-button">黑白</button>
     </div>
     <div class="filter-button-row">
-      <button @click="applyFilter('filter3')" class="filter-button">滤镜 3</button>
+      <button @click="applyFilter('pencil')" class="filter-button">简笔画</button>
       <button @click="applyFilter('filter4')" class="filter-button">滤镜 4</button>
     </div>
   </div>
@@ -161,10 +161,10 @@
       <!-- 手动添加十个按钮 -->
       <div class="button-container">
         <button class="extra-button" @click.stop="setOperation('style-transfer')">样式迁移</button>
-        <button class="extra-button" @click.stop="setOperation('image-segmentation')">人像分割</button>
+        <button class="extra-button" @click.stop="setOperation('image-segmentation')">实例分割</button>
         <button class="extra-button" @click.stop="setOperation('image-stitch')">图像拼接</button>
         <button class="extra-button" @click.stop="setOperation('histogram-equalization')">直方图均衡</button>
-        <button class="extra-button">按钮 5</button>
+        <button class="extra-button" @click.stop="setOperation('Identification-photo-production')">证件照制作</button>
         <button class="extra-button">按钮 6</button>
         <button class="extra-button">按钮 7</button>
         <button class="extra-button">按钮 8</button>
@@ -238,9 +238,9 @@ export default {
         { name: 'green', color: 'green' },
         { name: 'blue', color: 'blue' },
         { name: 'yellow', color: 'yellow' },
-        { name: 'purple', color: 'purple' },
         { name: 'black', color: 'black' },
         { name: 'white', color: 'white' },
+        { name: 'recovery', color: 'transparent', pattern: require('../assets/repair.png') },
         { name: 'mosaic', color: 'transparent', pattern: require('../assets/OIP-C.jpg') } // Mosaic brush with a pattern
       ]
     }
@@ -284,6 +284,10 @@ export default {
       this.selectedColor = 'none'
       this.brushSize = 10
       this.setOperation(null)
+      this.$nextTick(() => {
+        this.$emit('brush-color-changed', this.selectedColor)
+        this.$emit('brush-size-changed', this.brushSize)
+      })
     },
     // ---------------------------二区域
     toggleSection (section) { // 在 toggleSection 方法中，判断是否是 freeCrop 操作，并调用 setFreeCropOperation 方法。
@@ -331,6 +335,9 @@ export default {
     // },
     // ---------------------------四区域
     setOperation (operation) {
+      if (operation !== 'paint') {
+        this.paint_color = 'none'
+      }
       this.$emit('set-operation', operation)
     },
     emitChanges () {

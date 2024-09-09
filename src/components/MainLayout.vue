@@ -3,10 +3,14 @@
     <LeftSidebar
       :currentImage="currentImage ? currentImage : {}"
       @upload_images="upload_images"
+      @workspace-clicked="handleWorkspaceClick"
     />
     <div class="content">
+      <!-- 传递 brushSize 和 selectedColor 到 Workspace -->
       <Workspace
         :Img="currentImage ? currentImage.src : ''"
+        :brushSize="paint_size"
+        :selectedColor="paint_color"
         @coordinate-clicked="handleCoordinate"
         @draw-clicked="handleDraw"
       />
@@ -66,6 +70,11 @@ export default {
     }
   },
   methods: {
+    handleWorkspaceClick () {
+      console.log('工作台按钮被点击了，执行相关逻辑')
+      this.isGalleryExpanded = true
+      this.currentOperation = 'workspace'
+    },
     applyFilter (filterName) {
       if (!this.currentImage || !this.currentImage.id) {
         console.error('No image selected or image ID missing')
@@ -291,7 +300,8 @@ export default {
         this.applyStyleTransfer()
       }
       if ((this.currentOperation === 'image-stitch' && this.tempImage1 && this.tempImage2) ||
-       (this.currentOperation === 'histogram-equalization' && this.tempImage1)) {
+       (this.currentOperation === 'histogram-equalization' && this.tempImage1) ||
+       (this.currentOperation === 'Identification-photo-production' && this.tempImage1)) {
         console.log('handleConfirmChanges')
         this.applyWUDILE(this.currentOperation)
       }

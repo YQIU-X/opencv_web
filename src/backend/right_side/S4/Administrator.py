@@ -7,9 +7,14 @@ from src.backend.data.ImageManager import ImageManager
 from src.backend.Utils import image_2_base64
 from src.backend.right_side.S4.Image_Stitch import stitch_images
 from src.backend.right_side.S4.Histogram_Equalization import equalize_rgb_histogram
+from src.backend.right_side.S4.PP_HumanSeg.src.seghuman import seg_image, get_bg_img
+from src.backend.right_side.S4.Identification import create_id_photo, calculate_background_color
+import numpy as np
 
 app = Flask(__name__)
 CORS(app)
+
+
 
 @app.route('/administrator', methods=['POST'])
 def administrator():
@@ -19,6 +24,7 @@ def administrator():
     imageId_2 = data.get('Image2')
 
     manager = ImageManager()
+    current_image_1 = None
 
     if imageId_1 is not None:
         imageId_1 = int(data['Image1'])
@@ -37,6 +43,13 @@ def administrator():
     elif operation == 'histogram-equalization':
         print(operation)
         image_src = equalize_rgb_histogram(current_image_1)
+    elif operation == 'Identification-photo-production':
+        height, width, channels = current_image_1.shape
+        blue_color = calculate_background_color(current_image_1)
+        background_img = np.full((height, width, channels), blue_color, dtype=np.uint8)
+        
+        image_src = seg_image(current_image_1, background_img)
+        image_src = create_id_photo(image_src)
 
     
 

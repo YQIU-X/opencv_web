@@ -36,11 +36,20 @@ def apply_emboss_effect(img):
     return output
 
 
+
+def sketch_pencil(image):
+    _, sketch = cv2.pencilSketch(image, sigma_s=60, sigma_r=0.07, shade_factor=0.05)
+    return sketch
+
+
+
 def filter(img, filter):
     if filter == 'relief':
         return apply_emboss_effect(img)
     elif filter == 'grayscale':
         return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    elif filter == 'pencil':
+        return sketch_pencil(img)
     else:
         return img
     

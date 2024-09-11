@@ -92,7 +92,7 @@
       <div class="slider-container vertical-slider">
 <div class="slider-item">
   <label>Roll</label>
-  <input type="range" min="-180" max="180" v-model="roll" @input="emitRotationChanges('roll')" />
+  <input type="range" min="-180" max="180" v-model="roll" @change="emitRotationChanges('roll')" />
   <input type="number" min="-180" max="180" v-model="roll" @change="emitRotationChanges('roll')" class="number-input" />
 </div>
 <div class="slider-item">
@@ -102,7 +102,7 @@
 </div>
 <div class="slider-item">
   <label>Pitch</label>
-  <input type="range" min="-300" max="300" v-model="pitch" @input="emitRotationChanges('pitch')" />
+  <input type="range" min="-300" max="300" v-model="pitch" @change="emitRotationChanges('pitch')" />
   <input type="number" min="-300" max="300" v-model="pitch" @change="emitRotationChanges('pitch')" class="number-input" />
 </div>
       </div>
@@ -149,7 +149,7 @@
     </div>
     <div class="filter-button-row">
       <button @click="applyFilter('pencil')" class="filter-button">简笔画</button>
-      <button @click="applyFilter('filter4')" class="filter-button">滤镜 4</button>
+      <button @click="applyFilter('stylization')" class="filter-button">水彩画</button>
     </div>
   </div>
 </div>
@@ -169,7 +169,6 @@
         <button class="extra-button">按钮 7</button>
         <button class="extra-button">按钮 8</button>
         <button class="extra-button">按钮 9</button>
-        <button class="extra-button">按钮 10</button>
       </div>
     </div>
     </div>

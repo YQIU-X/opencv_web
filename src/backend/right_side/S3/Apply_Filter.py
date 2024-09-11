@@ -41,6 +41,9 @@ def sketch_pencil(image):
     _, sketch = cv2.pencilSketch(image, sigma_s=60, sigma_r=0.07, shade_factor=0.05)
     return sketch
 
+def stylization(image):
+    result = cv2.stylization(image, sigma_s=50, sigma_r=0.6)
+    return result
 
 
 def filter(img, filter):
@@ -50,6 +53,8 @@ def filter(img, filter):
         return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     elif filter == 'pencil':
         return sketch_pencil(img)
+    elif filter == 'stylization':
+        return stylization(img)
     else:
         return img
     

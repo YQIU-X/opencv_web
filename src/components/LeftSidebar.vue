@@ -63,6 +63,10 @@ export default {
 </script>
 
 <style scoped>
+.sidebar-section h2 {
+  text-align: center; /* 使标题水平居中 */
+}
+
 .left-sidebar {
   width: 200px;
   padding: 10px;
@@ -80,6 +84,8 @@ ul {
   margin: 0;
   padding: 0;
   list-style: none;
+  border: 5px solid #0c0606cc; /* 增加黑色外框 */
+  border-radius: 12px; /* 可选：增加圆角 */
 }
 
 li {

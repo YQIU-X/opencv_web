@@ -298,14 +298,26 @@ export default {
     },
     handleConfirmChanges () {
       console.log(this.currentOperation)
-      if (this.currentOperation === 'workspace' && this.images.length !== 0) {
-        const imagesData = JSON.stringify(this.images)
-        const encodedImages = encodeURIComponent(imagesData) // 对数据进行编码
 
-        // 打开新页面，并通过查询字符串传递数据
-        const newWindow = window.open(`/new-page?images=${encodedImages}`, '_blank')
-        if (newWindow) {
-          newWindow.focus() // 将新页面置于前台
+      if (this.currentOperation === 'workspace' && this.images.length !== 0) {
+        console.log('go to the new page')
+
+        const targetRoute = {
+          name: 'ImgGeoTransf',
+          query: {
+            images: encodeURIComponent(JSON.stringify(this.images))
+          }
+        }
+
+        // 检查当前路由与目标路由是否相同，避免重复导航
+        if (this.$route.name !== 'ImgGeoTransf' || this.$route.query.images !== targetRoute.query.images) {
+          try {
+            this.$router.push(targetRoute) // 执行路由跳转
+          } catch (error) {
+            if (error.name !== 'NavigationDuplicated') {
+              console.error(error)
+            }
+          }
         }
         return
       }

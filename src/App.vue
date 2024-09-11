@@ -1,16 +1,15 @@
 <template>
   <div id="app">
-    <MainLayout />
+    <router-view /> <!-- 用来展示当前路由对应的组件 -->
   </div>
 </template>
 
 <script>
-import MainLayout from './components/MainLayout.vue'
-
 export default {
-  name: 'App',
-  components: {
-    MainLayout
-  }
+  name: 'App'
 }
 </script>
+
+<style>
+/* 如果有任何全局样式，可以在这里添加 */
+</style>

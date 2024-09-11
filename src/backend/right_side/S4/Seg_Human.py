@@ -14,7 +14,6 @@ CORS(app)
 
 @app.route('/seg_human', methods=['POST'])
 def seg_human():
-    # Get the image and settings from the request
     data = request.json
     seg_img_id = int(data['seg_img_id'])
     background_img_id = data['background_img_id']

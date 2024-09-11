@@ -27,6 +27,7 @@ def run_scripts():
 
     remove_img_process = subprocess.Popen(["python", os.path.join(root, "bottom_gallery/Remove_Image.py")])
 
+    transf_process = subprocess.Popen(["python", os.path.join(root, "Radial_transf/transf.py")])
 
     process.append(load_images_process)
     process.append(upload_images_process)
@@ -44,6 +45,7 @@ def run_scripts():
     process.append(administrator_process)
     process.append(draw_process)
     process.append(apply_filter_process)
+    process.append(transf_process)
 
 
     print("Starting scripts...")

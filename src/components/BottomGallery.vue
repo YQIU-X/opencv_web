@@ -32,7 +32,6 @@
           class="overlay">
         <span>{{ tempImage1 && image.id === tempImage1.id ? 'selected image' : '' }}</span>
       </div>
-
     </div>
     <div v-if="contextMenuVisible" :style="{ top: `${contextMenuY}px`, left: `${contextMenuX}px` }" class="context-menu">
       <ul>

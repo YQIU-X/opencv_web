@@ -19,11 +19,12 @@
         @mousedown="initDrag($event, index)"
         @contextmenu.prevent="showContextMenu($event, index)"
       >
+        <!-- 确保图像背景为透明，且避免其他 CSS 样式影响透明显示 -->
         <img
-          :src="image.src"
-          alt="Image"
-          @load="setImageOriginalSize(index, $event)"
-          :style="{ width: image.width + 'px', height: image.height + 'px' }"
+        :src="image.src"
+        alt="Image"
+        @load="setImageOriginalSize(index, $event)"
+        :style="{ width: image.width + 'px', height: image.height + 'px', backgroundColor: 'transparent' }"
         />
 
         <!-- 等比例缩放 (右下角) -->
@@ -69,7 +70,8 @@
       <ul>
         <li @click="bringToFront(selectedImageIndex)">置于顶层</li>
         <li @click="sendToBack(selectedImageIndex)">置于底层</li>
-        <li @click="toggleVertexEdit(selectedImageIndex)">编辑顶点</li>
+        <li v-if="!images[selectedImageIndex].editingVertices" @click="toggleVertexEdit(selectedImageIndex)">编辑顶点</li>
+        <li v-if="images[selectedImageIndex].editingVertices" @click="closeVertexEdit(selectedImageIndex)">关闭编辑顶点</li>
       </ul>
     </div>
   </div>
@@ -115,15 +117,19 @@ export default {
       const decodedImages = JSON.parse(decodeURIComponent(imagesData))
       this.images = decodedImages.map((image, idx) => ({
         ...image,
+        id: image.id,
         top: 0,
         left: 0,
         rotation: 0, // 初始旋转角度
         zIndex: idx + 1, // 初始化 zIndex
-
         topLeft: { x: 0, y: 0 },
         topRight: { x: image.width, y: 0 },
         bottomLeft: { x: 0, y: image.height },
         bottomRight: { x: image.width, y: image.height },
+        orignTopLeft: { x: 0, y: 0 },
+        orignTopRight: { x: image.width, y: 0 },
+        orignBottomLeft: { x: 0, y: image.height },
+        orignBottomRight: { x: image.width, y: image.height },
         editingVertices: false // 初始化编辑顶点状态为 false
       }))
     } else {
@@ -141,6 +147,27 @@ export default {
     window.removeEventListener('click', this.hideContextMenu)
   },
   methods: {
+    // 设置图片的原始大小，根据图片加载后的自然宽高设置缩放后的宽高
+    setImageOriginalSize (index, event) {
+      const img = event.target // 获取图片元素
+      const image = this.images[index]
+      console.log('this.images[index]', image)
+      console.log('this.images[index]', image.topLeft)
+      image.width = img.naturalWidth // 根据比例设置图片宽度
+      image.height = img.naturalHeight // 根据比例设置图片高度
+      image.aspectRatio = img.naturalWidth / img.naturalHeight // 记录宽高比
+      this.$set(this.images, index, image) // 更新图片属性
+      console.log('this.images[index]', image.topLeft)
+      image.topLeft = { x: 0, y: 0 }
+      image.topRight = { x: image.width, y: 0 }
+      image.bottomLeft = { x: 0, y: image.height }
+      image.bottomRight = { x: image.width, y: image.height }
+      image.orignTopLeft = { x: 0, y: 0 }
+      image.orignTopRight = { x: image.width, y: 0 }
+      image.orignBottomLeft = { x: 0, y: image.height }
+      image.orignBottomRight = { x: image.width, y: image.height }
+      this.$set(this.images, index, image)
+    },
     // 切换顶点编辑状态，用于开启或关闭顶点编辑模式
     toggleVertexEdit (index) {
       // 切换当前图片的顶点编辑状态
@@ -149,11 +176,15 @@ export default {
       // 隐藏右键菜单
       this.hideContextMenu()
     },
-
+    closeVertexEdit (index) {
+      this.$set(this.images[index], 'editingVertices', false) // 关闭编辑模式
+      this.hideContextMenu()
+    },
     // 初始化顶点拖动，用户点击顶点手柄时调用，准备进行顶点拖动操作
     initVertexDrag (event, index, vertex) {
       this.saveHistory() // 保存当前状态，用于撤销
       this.draggedImageIndex = index // 记录当前被拖动图片的索引
+      console.log('initVertexDrag', this.draggedImageIndex)
       this.vertexType = vertex // 记录正在拖动的顶点类型（四个顶点之一）
       this.startX = event.clientX // 记录鼠标开始拖动时的 X 坐标
       this.startY = event.clientY // 记录鼠标开始拖动时的 Y 坐标
@@ -168,23 +199,23 @@ export default {
         const dx = event.clientX - this.startX // 鼠标X方向移动的距离
         const dy = event.clientY - this.startY // 鼠标Y方向移动的距离
 
-        // 根据顶点类型调整顶点位置
+        // 根据顶点类型调整顶点位置（只修改当前正在拖动的顶点）
         switch (this.vertexType) {
           case 'topLeft':
-            image.topLeft.x += dx
-            image.topLeft.y += dy
+            this.$set(image.topLeft, 'x', image.topLeft.x + dx)
+            this.$set(image.topLeft, 'y', image.topLeft.y + dy)
             break
           case 'topRight':
-            image.topRight.x += dx
-            image.topRight.y += dy
+            this.$set(image.topRight, 'x', image.topRight.x + dx)
+            this.$set(image.topRight, 'y', image.topRight.y + dy)
             break
           case 'bottomLeft':
-            image.bottomLeft.x += dx
-            image.bottomLeft.y += dy
+            this.$set(image.bottomLeft, 'x', image.bottomLeft.x + dx)
+            this.$set(image.bottomLeft, 'y', image.bottomLeft.y + dy)
             break
           case 'bottomRight':
-            image.bottomRight.x += dx
-            image.bottomRight.y += dy
+            this.$set(image.bottomRight, 'x', image.bottomRight.x + dx)
+            this.$set(image.bottomRight, 'y', image.bottomRight.y + dy)
             break
         }
 
@@ -192,10 +223,11 @@ export default {
         this.startX = event.clientX
         this.startY = event.clientY
 
-        // 确保Vue的响应式更新
+        // 确保 Vue 的响应式更新
         this.$set(this.images, this.draggedImageIndex, image)
       }
     },
+
     // 当用户点击全局区域时，隐藏右键菜单
     handleGlobalClick (event) {
       this.hideContextMenu()
@@ -223,8 +255,12 @@ export default {
       if (this.dragging && this.draggedImageIndex !== null) {
         const image = this.images[this.draggedImageIndex]
         // 更新图片的 left 和 top 属性，实现拖动效果
-        image.left = event.clientX - this.offsetX
-        image.top = event.clientY - this.offsetY
+        const dx = event.clientX - this.offsetX
+        const dy = event.clientY - this.offsetY
+        // 更新图片的位置
+        image.left = dx
+        image.top = dy
+        // 确保 Vue 响应式更新
         this.$set(this.images, this.draggedImageIndex, image)
       }
     },
@@ -304,6 +340,89 @@ export default {
       this.dragging = false // 结束拖动
       this.resizing = false // 结束缩放
       this.rotating = false // 结束旋转
+      const draggedIndex = this.draggedImageIndex
+      const editingVertices = this.images[draggedIndex].editingVertices
+      console.log('this.editingVertices', editingVertices)
+
+      if (editingVertices) {
+        console.log('stopDragOrResize')
+        const image = this.images[this.draggedImageIndex]
+
+        // 准备发送到后端的数据
+        const dataToSend = {
+          width: image.width,
+          height: image.height,
+          id: image.id,
+          topLeft: image.topLeft ? { x: image.topLeft.x, y: image.topLeft.y } : null,
+          topRight: image.topRight ? { x: image.topRight.x, y: image.topRight.y } : null,
+          bottomLeft: image.bottomLeft ? { x: image.bottomLeft.x, y: image.bottomLeft.y } : null,
+          bottomRight: image.bottomRight ? { x: image.bottomRight.x, y: image.bottomRight.y } : null,
+          orignTopLeft: image.orignTopLeft ? { x: image.orignTopLeft.x, y: image.orignTopLeft.y } : null,
+          orignTopRight: image.orignTopRight ? { x: image.orignTopRight.x, y: image.orignTopRight.y } : null,
+          orignBottomLeft: image.orignBottomLeft ? { x: image.orignBottomLeft.x, y: image.orignBottomLeft.y } : null,
+          orignBottomRight: image.orignBottomRight ? { x: image.orignBottomRight.x, y: image.orignBottomRight.y } : null
+        }
+        console.log('Data to send:', dataToSend)
+        // 使用 fetch 或 axios 发送数据到后端
+        fetch('http://localhost:5016/Radial_transf', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dataToSend)
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Response:', data)
+            const base64Image = data.img
+            const width = data.width // 获取返回的宽度
+            const height = data.height // 获取返回的高度
+            const newTopLeft = data.new_top_right
+            const newTopRight = data.new_top_right
+            const newBottomLeft = data.new_bottom_left
+            const newBottomRight = data.new_bottom_right
+
+            // 更新当前图片的src、width、height
+            this.images[draggedIndex].src = `data:image/png;base64,${base64Image}`
+            this.images[draggedIndex].width = width
+            this.images[draggedIndex].height = height
+
+            // 更新四个顶点坐标
+            this.images[draggedIndex].topLeft = newTopLeft
+            this.images[draggedIndex].topRight = newTopRight
+            this.images[draggedIndex].bottomLeft = newBottomLeft
+            this.images[draggedIndex].bottomRight = newBottomRight
+            this.$set(this.images, draggedIndex, this.images[draggedIndex]) // 更新响应式数据
+
+            // 完成后将顶点编辑标识复位
+            this.images[draggedIndex].editingVertices = false
+            this.images[draggedIndex].orignTopLeft = newTopLeft
+            this.images[draggedIndex].orignTopRight = newTopRight
+            this.images[draggedIndex].orignBottomLeft = newBottomLeft
+            this.images[draggedIndex].orignBottomRight = newBottomRight
+            this.$set(this.images[draggedIndex], 'src', `data:image/png;base64,${base64Image}`)
+            this.$set(this.images[draggedIndex], 'width', data.width)
+            this.$set(this.images[draggedIndex], 'height', data.height)
+
+            this.$set(this.images[draggedIndex], 'topLeft', newTopLeft)
+            this.$set(this.images[draggedIndex], 'topRight', newTopRight)
+            this.$set(this.images[draggedIndex], 'bottomLeft', newBottomLeft)
+            this.$set(this.images[draggedIndex], 'bottomRight', newBottomRight)
+            this.$set(this.images[draggedIndex], 'orignTopLeft', newTopLeft)
+            this.$set(this.images[draggedIndex], 'orignTopRight', newTopRight)
+            this.$set(this.images[draggedIndex], 'orignBottomLeft', newBottomLeft)
+            this.$set(this.images[draggedIndex], 'orignBottomRight', newBottomRight)
+          })
+          .catch((error) => {
+            console.error('Error:', error)
+          })
+          .catch((error) => {
+            console.error('Error:', error)
+          })
+
+        // 完成后将顶点编辑标识复位
+        this.vertexEditing = false
+      }
       this.draggedImageIndex = null // 清除拖动的图片索引
       // 移除鼠标事件监听器
       window.removeEventListener('mousemove', this.dragImage)
@@ -337,24 +456,6 @@ export default {
       const minZIndex = Math.min(...this.images.map(image => image.zIndex)) // 获取当前最小的 zIndex
       this.images[index].zIndex = Math.max(minZIndex - 1, 0) // 将选中的图片 zIndex 设置为最小值
       this.hideContextMenu() // 隐藏右键菜单
-    },
-
-    // 设置图片的原始大小，根据图片加载后的自然宽高设置缩放后的宽高
-    setImageOriginalSize (index, event) {
-      const img = event.target // 获取图片元素
-      const image = this.images[index]
-      const scaleFactor = 0.5 // 缩放比例
-      image.width = img.naturalWidth * scaleFactor // 根据比例设置图片宽度
-      image.height = img.naturalHeight * scaleFactor // 根据比例设置图片高度
-      image.aspectRatio = img.naturalWidth / img.naturalHeight // 记录宽高比
-      this.$set(this.images, index, image) // 更新图片属性
-      image.topLeft = { x: 0, y: 0 }
-      image.topRight = { x: image.width, y: 0 }
-      image.bottomLeft = { x: 0, y: image.height }
-      image.bottomRight = { x: image.width, y: image.height }
-
-      // 更新 Vue 响应式数据
-      this.$set(this.images, index, image)
     },
 
     // 保存操作历史，用于实现撤销功能
@@ -399,6 +500,7 @@ body {
   position: relative;
   min-height: 100vh;
   padding: 20px;
+  background-color: transparent; /* 容器背景透明 */
 }
 
 .image-list {
@@ -413,6 +515,7 @@ body {
   position: absolute;
   border: 2px solid #000;
   box-sizing: border-box;
+  background-color: transparent; /* 确保背景透明 */
 }
 
 .image-list img {

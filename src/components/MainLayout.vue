@@ -301,11 +301,11 @@ export default {
 
       if (this.currentOperation === 'workspace' && this.images.length !== 0) {
         console.log('go to the new page')
-
+        const clonedImages = JSON.parse(JSON.stringify(this.images))
         const targetRoute = {
           name: 'ImgGeoTransf',
           query: {
-            images: encodeURIComponent(JSON.stringify(this.images))
+            images: encodeURIComponent(JSON.stringify(clonedImages))
           }
         }
 
@@ -497,6 +497,13 @@ export default {
       // this.currentOperation = null
       this.isGalleryExpanded = false
     },
+    handleKeydown (event) {
+    // 检查是否按下了Ctrl（或Command）和Z键
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'z' || event.key === 'Z')) {
+        event.preventDefault() // 防止默认行为
+        this.undoAction() // 调用撤销操作
+      }
+    },
     undoAction () {
       this.clean()
       // this.currentOperation = null
@@ -571,9 +578,11 @@ export default {
     this.$refs.bottomGallery.updateImages()
     this.paint_color = null
     document.addEventListener('click', this.handleClickOutside)
+    document.addEventListener('keydown', this.handleKeydown)
   },
   beforeDestroy () {
     document.removeEventListener('click', this.handleClickOutside)
+    document.removeEventListener('keydown', this.handleKeydown)
   }
 }
 </script>

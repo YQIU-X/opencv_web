@@ -15,6 +15,7 @@ CORS(app)
 @app.route('/seg_human', methods=['POST'])
 def seg_human():
     data = request.json
+    manager = ImageManager()
     seg_img_id = int(data['seg_img_id'])
     background_img_id = data['background_img_id']
     background_img = None
@@ -22,7 +23,7 @@ def seg_human():
         background_img_id = int(background_img_id)
         background_img = manager.get_current_image(background_img_id)
 
-    manager = ImageManager()
+
 
     seg_img = manager.get_current_image(seg_img_id)
     background_img = None

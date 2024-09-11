@@ -26,7 +26,7 @@ def base64_2_image(base64_string):
     return img
 
 def image_2_base64(image):
-    _, buffer = cv2.imencode('.jpg', image)
+    _, buffer = cv2.imencode('.png', image)
     encoded_image = base64.b64encode(buffer).decode('utf-8')
     return encoded_image
 

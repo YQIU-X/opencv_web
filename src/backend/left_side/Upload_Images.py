@@ -39,7 +39,8 @@ def upload_images():
         
         manager.add_image(image_id, img, config)
         index += 1
-
+        print(image_id)
+        
     manager.save_images()
     response = jsonify({'first_image': first_image_base64, "config": config})
     return response

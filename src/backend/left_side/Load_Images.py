@@ -26,6 +26,7 @@ def load_images():
             'img64': img_base64,
             'config': config
         })
+        print(image_id)
 
     return jsonify({'images': images})
 

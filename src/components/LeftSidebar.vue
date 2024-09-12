@@ -17,6 +17,7 @@
 
     <!-- 左下角按钮 -->
     <div class="bottom-button">
+      <button @click="goToMeitu">跳转至MEITU</button>
       <button @click="handleButtonClick">工作台</button>
     </div>
   </div>
@@ -37,6 +38,9 @@ export default {
     }
   },
   methods: {
+    goToMeitu () {
+      window.open('https://pc.meitu.com/toolbox', '_blank') // 打开新页面
+    },
     toggleSection (section) {
       this.expandedSection = this.expandedSection === section ? null : section
     },

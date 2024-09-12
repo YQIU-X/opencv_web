@@ -151,6 +151,14 @@
       <button @click="applyFilter('pencil')" class="filter-button">简笔画</button>
       <button @click="applyFilter('stylization')" class="filter-button">水彩画</button>
     </div>
+    <div class="filter-button-row">
+      <button @click="applyFilter('fresh')" class="filter-button">鲜食滤镜</button>
+      <button @click="applyFilter('obscure')" class="filter-button">模糊滤镜</button>
+    </div>
+    <div class="filter-button-row">
+      <button @click="applyFilter('Glamorous')" class="filter-button">冷艳滤镜</button>
+      <button @click="applyFilter('nostalgia')" class="filter-button">怀旧滤镜</button>
+    </div>
   </div>
 </div>
 
@@ -163,12 +171,13 @@
         <button class="extra-button" @click.stop="setOperation('style-transfer')">样式迁移</button>
         <button class="extra-button" @click.stop="setOperation('image-segmentation')">实例分割</button>
         <button class="extra-button" @click.stop="setOperation('image-stitch')">图像拼接</button>
+        <button class="extra-button" @click.stop="setOperation('generate-puzzles')">生成拼图</button>
         <button class="extra-button" @click.stop="setOperation('histogram-equalization')">直方图均衡</button>
         <button class="extra-button" @click.stop="setOperation('Identification-photo-production')">证件照制作</button>
-        <button class="extra-button">按钮 6</button>
-        <button class="extra-button">按钮 7</button>
-        <button class="extra-button">按钮 8</button>
+        <button class="extra-button" @click.stop="setOperation('stacks-mean')">图像堆栈<br>均值</button>
+        <button class="extra-button" @click.stop="setOperation('stacks-max')">图象堆栈<br>最大值</button>
         <button class="extra-button">按钮 9</button>
+        <button class="extra-button">按钮 10</button>
       </div>
     </div>
     </div>
@@ -523,18 +532,18 @@ h3{
 .button-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 10px; /* 增加按钮之间的间距 */
+  justify-content: space-between;
 }
 
 .extra-button {
-  flex: 1 1 30%;
-  padding: 5px;
+  flex: 1 1 45%; /* 设置每个按钮占据45%的宽度，保持两排并列 */
+  padding: 10px;
   background-color: #3a3a3a;
   color: #ffffff;
   border: 1px solid #2c2c2c;
   text-align: center;
   cursor: pointer;
-  margin-bottom: 5px;
   transition: background-color 0.3s ease;
 }
 

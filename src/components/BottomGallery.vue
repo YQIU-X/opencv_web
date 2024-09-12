@@ -32,6 +32,15 @@
           class="overlay">
         <span>{{ tempImage1 && image.id === tempImage1.id ? 'selected image' : '' }}</span>
       </div>
+      <div v-if="currentOperation === 'stacks-mean' && (tempImage1 && image.id === tempImage1.id || tempImage2 && image.id === tempImage2.id)"
+          class="overlay">
+        <span>{{ tempImage1 && image.id === tempImage1.id ? 'first' : 'end' }}</span>
+      </div>
+      <div v-if="currentOperation === 'generate-puzzles' && puzzles.includes(image.id)"
+            class="overlay">
+        <span>selected image</span>
+      </div>
+
     </div>
     <div v-if="contextMenuVisible" :style="{ top: `${contextMenuY}px`, left: `${contextMenuX}px` }" class="context-menu">
       <ul>
@@ -72,6 +81,10 @@ export default {
         src: '',
         config: {}
       })
+    },
+    puzzles: {
+      type: Array,
+      default: () => []
     }
   },
   data () {

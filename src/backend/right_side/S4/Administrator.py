@@ -9,11 +9,12 @@ from src.backend.right_side.S4.Image_Stitch import stitch_images
 from src.backend.right_side.S4.Histogram_Equalization import equalize_rgb_histogram
 from src.backend.right_side.S4.PP_HumanSeg.src.seghuman import seg_image, get_bg_img
 from src.backend.right_side.S4.Identification import create_id_photo, calculate_background_color
+from src.backend.right_side.S4.Stack import stack_images_mean_cv, stack_images_max_cv
+from src.backend.right_side.S4.Puzzles import get_puzzle
 import numpy as np
 
 app = Flask(__name__)
 CORS(app)
-
 
 
 @app.route('/administrator', methods=['POST'])
@@ -22,6 +23,9 @@ def administrator():
 
     imageId_1 = data.get('Image1')
     imageId_2 = data.get('Image2')
+    puzzles = data.get('puzzles')
+
+
 
     manager = ImageManager()
     current_image_1 = None
@@ -50,6 +54,29 @@ def administrator():
         
         image_src = seg_image(current_image_1, background_img)
         image_src = create_id_photo(image_src)
+    elif operation == 'stacks-max':
+        images = []
+        for i in range(imageId_1, imageId_2 + 1):
+            if i in manager.data:
+                images.append(manager.get_current_image(i))
+        image_src = stack_images_max_cv(images)
+
+    elif operation == 'stacks-mean':
+        images = []
+        for i in range(imageId_1, imageId_2 + 1):
+            if i in manager.data:
+                images.append(manager.get_current_image(i))
+        image_src = stack_images_mean_cv(images)
+
+    elif operation == 'generate-puzzles':
+        puzzle_images = []
+        if puzzles:
+            for puzzle_id in puzzles:
+                puzzle_image = manager.get_current_image(puzzle_id)
+                puzzle_images.append(puzzle_image)
+            image_src = get_puzzle(puzzle_images[0], puzzle_images[1], puzzle_images[2], puzzle_images[3])
+        else:
+            print('jijijijiji')
 
     
 

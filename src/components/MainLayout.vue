@@ -20,6 +20,7 @@
         :tempImage1="tempImage1 ? tempImage1 : {}"
         :tempImage2="tempImage2 ? tempImage2 : {}"
         :currentOperation="currentOperation"
+        :puzzles="puzzles"
         @select-image="select_image"
         @remove-image="removeImage"
         :class="{ 'expanded-gallery': isGalleryExpanded }"
@@ -67,7 +68,9 @@ export default {
       paint_color: null, // 画笔颜色
       paint_size: 10, // 画笔大小
       points: [], // 用来存点
-      images: [] // 用来存工作台图片
+      images: [], // 用来存工作台图片
+      puzzles: [] // 用来存拼图
+      // stacks: [] // 用来存储堆栈图像
     }
   },
   methods: {
@@ -283,6 +286,9 @@ export default {
         this.images.push(image)
         return
       }
+      if (this.currentOperation === 'generate-puzzles') {
+        this.puzzles.push(image.id)
+      }
       if (!this.tempImage1) {
         this.tempImage1 = image
       } else if (!this.tempImage2) {
@@ -330,7 +336,9 @@ export default {
       }
       if ((this.currentOperation === 'image-stitch' && this.tempImage1 && this.tempImage2) ||
        (this.currentOperation === 'histogram-equalization' && this.tempImage1) ||
-       (this.currentOperation === 'Identification-photo-production' && this.tempImage1)) {
+       (this.currentOperation === 'Identification-photo-production' && this.tempImage1) ||
+       ((this.currentOperation === 'stacks-max' || this.currentOperation === 'stacks-mean') && this.tempImage1 && this.tempImage2) ||
+       (this.currentOperation === 'generate-puzzles' && this.puzzles && this.puzzles.length !== 0)) {
         console.log('handleConfirmChanges')
         this.applyWUDILE(this.currentOperation)
       }
@@ -346,7 +354,8 @@ export default {
         body: JSON.stringify({
           Image1: this.tempImage1 ? this.tempImage1.id : null,
           Image2: this.tempImage2 ? this.tempImage2.id : null,
-          operation: operation
+          operation: operation,
+          puzzles: this.puzzles
         })
       })
         .then(response => {
@@ -496,6 +505,7 @@ export default {
       this.tempImage2 = null
       // this.currentOperation = null
       this.isGalleryExpanded = false
+      this.puzzles = []
     },
     handleKeydown (event) {
     // 检查是否按下了Ctrl（或Command）和Z键

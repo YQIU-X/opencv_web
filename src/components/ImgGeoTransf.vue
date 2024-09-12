@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" id="aa">
     <ul class="image-list">
       <li
         v-for="(image, index) in images"
@@ -78,7 +78,7 @@
 </template>
 
 <script>
-
+import html2canvas from 'html2canvas'
 export default {
   data () {
     return {
@@ -147,6 +147,22 @@ export default {
     window.removeEventListener('click', this.hideContextMenu)
   },
   methods: {
+    capture () {
+      // 获取要截取的 DOM 元素
+      const content = document.getElementById('aa')
+
+      // 使用 html2canvas 截取 DOM 并生成图片
+      html2canvas(content).then(canvas => {
+        // 将 canvas 转换为图片的 URL
+        const imgData = canvas.toDataURL('image/png')
+
+        // 创建一个临时的 <a> 标签用于下载图片
+        const link = document.createElement('a')
+        link.href = imgData
+        link.download = 'captured-content.png' // 图片名称
+        link.click() // 触发下载
+      })
+    },
     // 设置图片的原始大小，根据图片加载后的自然宽高设置缩放后的宽高
     setImageOriginalSize (index, event) {
       const img = event.target // 获取图片元素
@@ -469,6 +485,9 @@ export default {
     handleKeydown (event) {
       if ((event.ctrlKey && event.key === 'z') || (event.ctrlKey && event.key === 'Z')) {
         this.undo() // 执行撤销操作
+      }
+      if ((event.ctrlKey && event.key === 's') || (event.ctrlKey && event.key === 'S')) {
+        this.capture()
       }
     },
 

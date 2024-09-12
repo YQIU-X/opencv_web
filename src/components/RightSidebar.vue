@@ -177,7 +177,7 @@
         <button class="extra-button" @click.stop="setOperation('stacks-mean')">图像堆栈<br>-均值-</button>
         <button class="extra-button" @click.stop="setOperation('stacks-max')">图象堆栈<br>-最大值-</button>
         <button class="extra-button" @click.stop="setOperation('defogging')">图像去雾</button>
-        <button class="extra-button">按钮 10</button>
+        <button class="extra-button" @click="removeAll">移除所有</button>
       </div>
     </div>
     </div>
@@ -271,6 +271,33 @@ export default {
     }
   },
   methods: {
+    removeAll () {
+      // 弹出确认对话框
+      const confirmation = confirm('您确定要移除所有设置吗？此操作无法撤销……')
+
+      // 如果用户确认，则执行移除操作
+      if (confirmation) {
+        fetch('http://localhost:5017/remove_all', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log(data.message)
+            alert(data.message) // 弹出成功移除的提示
+            if (data.message.includes('已删除')) {
+              window.location.reload() // 刷新页面
+            }
+          })
+          .catch((error) => {
+            console.error('Error:', error)
+          })
+      } else {
+        console.log('用户取消了操作')
+      }
+    },
     applyFilter (filterName) {
       console.log(`Applying filter: ${filterName}`)
       this.$emit('apply-filter', filterName) // 向父组件发送应用滤镜的事件

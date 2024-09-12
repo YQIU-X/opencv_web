@@ -21,6 +21,7 @@ def run_scripts():
     style_migration_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Style_Migration.py")])
     seg_human_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Seg_Human.py")])
     administrator_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Administrator.py")])
+    remove_all_process = subprocess.Popen(["python", os.path.join(root, "right_side/S4/Remove_All.py")])
 
     next_img_process = subprocess.Popen(["python", os.path.join(root,"right_side/Next_Image.py")])
     undo_action_process = subprocess.Popen(["python", os.path.join(root, "right_side/Undo_Action.py")])
@@ -46,6 +47,7 @@ def run_scripts():
     process.append(draw_process)
     process.append(apply_filter_process)
     process.append(transf_process)
+    process.append(remove_all_process)
 
 
     print("Starting scripts...")

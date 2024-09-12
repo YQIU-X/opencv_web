@@ -13,6 +13,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "html2canvas": "^1.4.1",
     "mathjs": "^13.1.1",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1"

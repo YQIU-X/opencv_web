@@ -31,3 +31,5 @@
 # http://localhost:5015/apply_filter
 
 # http://localhost:5016/Radial_transf
+
+# http://localhost:5017/Remove_All

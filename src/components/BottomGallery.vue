@@ -40,6 +40,10 @@
             class="overlay">
         <span>selected image</span>
       </div>
+      <div v-if="currentOperation === 'defogging' && (tempImage1 && image.id === tempImage1.id || tempImage2 && image.id === tempImage2.id)"
+          class="overlay">
+        <span>{{ tempImage1 && image.id === tempImage1.id ? 'selected image' : '' }}</span>
+      </div>
 
     </div>
     <div v-if="contextMenuVisible" :style="{ top: `${contextMenuY}px`, left: `${contextMenuX}px` }" class="context-menu">

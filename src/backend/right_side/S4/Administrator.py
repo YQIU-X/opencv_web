@@ -11,7 +11,9 @@ from src.backend.right_side.S4.PP_HumanSeg.src.seghuman import seg_image, get_bg
 from src.backend.right_side.S4.Identification import create_id_photo, calculate_background_color
 from src.backend.right_side.S4.Stack import stack_images_mean_cv, stack_images_max_cv
 from src.backend.right_side.S4.Puzzles import get_puzzle
+from src.backend.right_side.S4.Defogging import zmIceColor
 import numpy as np
+import cv2
 
 app = Flask(__name__)
 CORS(app)
@@ -77,15 +79,25 @@ def administrator():
             image_src = get_puzzle(puzzle_images[0], puzzle_images[1], puzzle_images[2], puzzle_images[3])
         else:
             print('jijijijiji')
-
     
+    elif operation == 'defogging':
+        image_src = zmIceColor(current_image_1/255.0)*255
 
-    img_base64 = image_2_base64(image_src)
-    new_img_id = manager.get_next_image_id()
-    manager.add_image(new_img_id, image_src, config)
-    manager.save_images()
+    if operation == 'defogging' or operation == 'histogram-equalization':
+        manager.forward_image(imageId_1, image_src, config)
+        manager.set_current_image(imageId_1, image_src)
+        manager.save_images()
 
-    return jsonify({"id": new_img_id, "src": img_base64, "config": config})
+        img_base64 = image_2_base64(image_src)
+        return jsonify({"id": imageId_1, "src": img_base64, "config": config})
+    else:
+        new_img_id = manager.get_next_image_id()
+        manager.add_image(new_img_id, image_src, config)
+        manager.save_images()
+
+        img_base64 = image_2_base64(image_src)
+        return jsonify({"id": new_img_id, "src": img_base64, "config": config})
+    
 
 if __name__ == '__main__':
     app.run(debug=False, port=5013, threaded=True)

@@ -292,7 +292,7 @@ export default {
       if (!this.tempImage1) {
         this.tempImage1 = image
       } else if (!this.tempImage2) {
-        if (this.currentOperation === 'histogram-equalization') {
+        if (this.currentOperation === 'histogram-equalization' || this.currentOperation === 'defogging') {
           this.tempImage1 = image
         } else {
           this.tempImage2 = image
@@ -338,7 +338,8 @@ export default {
        (this.currentOperation === 'histogram-equalization' && this.tempImage1) ||
        (this.currentOperation === 'Identification-photo-production' && this.tempImage1) ||
        ((this.currentOperation === 'stacks-max' || this.currentOperation === 'stacks-mean') && this.tempImage1 && this.tempImage2) ||
-       (this.currentOperation === 'generate-puzzles' && this.puzzles && this.puzzles.length !== 0)) {
+       (this.currentOperation === 'generate-puzzles' && this.puzzles && this.puzzles.length !== 0) ||
+       (this.currentOperation === 'defogging' && this.tempImage1)) {
         console.log('handleConfirmChanges')
         this.applyWUDILE(this.currentOperation)
       }
@@ -371,7 +372,9 @@ export default {
             config: data.config
           }
           this.select_image(this.currentImage)
-          this.$refs.bottomGallery.updateImages()
+          this.$nextTick(() => {
+            this.$refs.bottomGallery.updateImages()
+          })
           this.clean()
         })
         .catch(error => {

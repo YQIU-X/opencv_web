@@ -174,9 +174,9 @@
         <button class="extra-button" @click.stop="setOperation('generate-puzzles')">生成拼图</button>
         <button class="extra-button" @click.stop="setOperation('histogram-equalization')">直方图均衡</button>
         <button class="extra-button" @click.stop="setOperation('Identification-photo-production')">证件照制作</button>
-        <button class="extra-button" @click.stop="setOperation('stacks-mean')">图像堆栈<br>均值</button>
-        <button class="extra-button" @click.stop="setOperation('stacks-max')">图象堆栈<br>最大值</button>
-        <button class="extra-button">按钮 9</button>
+        <button class="extra-button" @click.stop="setOperation('stacks-mean')">图像堆栈<br>-均值-</button>
+        <button class="extra-button" @click.stop="setOperation('stacks-max')">图象堆栈<br>-最大值-</button>
+        <button class="extra-button" @click.stop="setOperation('defogging')">图像去雾</button>
         <button class="extra-button">按钮 10</button>
       </div>
     </div>

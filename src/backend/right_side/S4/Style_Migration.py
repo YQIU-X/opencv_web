@@ -127,18 +127,29 @@ class StyleTransfer:
 @app.route('/style_migration', methods=['POST'])
 def style_migration():
     data = request.get_json()
+    
+    # 清理未使用的显存
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
     content_img_id = int(data['content_id'])
     style_img_id = int(data['style_id'])
     manager = ImageManager()
     content_img = manager.get_current_image(content_img_id)
     style_img = manager.get_current_image(style_img_id)
     style_transfer = StyleTransfer(content_img, style_img, image_shape=content_img.shape[:2])
+    
+    # 执行风格迁移
     output_image = style_transfer.train()
+    
+    # 清理训练过程中未使用的显存
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     new_img_id = manager.get_next_image_id()
     manager.add_image(new_img_id, output_image)
     manager.save_images()
-    
+
     config = {"temperature": 0, "hue": 0, "exposure": 0, "contrast": 0, "sharpen": 0, "saturation": 0}
 
     img_base64 = image_2_base64(output_image)

@@ -36,6 +36,10 @@
           class="overlay">
         <span>{{ tempImage1 && image.id === tempImage1.id ? 'first' : 'end' }}</span>
       </div>
+      <div v-if="currentOperation === 'stacks-max' && (tempImage1 && image.id === tempImage1.id || tempImage2 && image.id === tempImage2.id)"
+          class="overlay">
+        <span>{{ tempImage1 && image.id === tempImage1.id ? 'first' : 'end' }}</span>
+      </div>
       <div v-if="currentOperation === 'generate-puzzles' && puzzles.includes(image.id)"
             class="overlay">
         <span>selected image</span>
